@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebCatalog Pro | Curated Design Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fonts: Space Grotesk (Display), Manrope (Body), JetBrains Mono (Code) -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* --- LIGHT MODE --- */
+        
+        /* 1. PRIMARY FOUNDATION (60-65%) - Beige/Off-White */
+        --bg-primary: 252 251 249;   /* #FCFBF9 (Warm Paper) */
+        --bg-surface: 255 255 255;   /* #FFFFFF */
+        --bg-surface-raised: 255 255 255; 
+        --bg-surface-highlight: 244 244 245; /* Zinc-100 */
+        
+        --text-primary: 24 24 27;    /* #18181B */
+        --text-secondary: 82 82 91;  /* #52525B */
+        --text-tertiary: 113 113 122; /* #71717A */
+        --text-inverse: 255 255 255;
+        
+        --border-base: 228 228 231;  /* #E4E4E7 */
+        
+        /* 2. SECONDARY ACTION (20-25%) - Leaf Green */
+        --accent-primary: 21 128 61;     /* #15803D (Green-700) - Strong contrast for light mode */
+        --accent-primary-dim: 22 163 74; /* #16A34A (Green-600) */
+        --accent-primary-fg: 255 255 255;
+
+        /* 3. TERTIARY EMPHASIS (8-10%) - Soft Orange */
+        --accent-secondary: 249 115 22;  /* #F97316 (Orange-500) */
+        --accent-secondary-dim: 251 146 60; 
+        --accent-secondary-fg: 255 255 255;
+
+        /* 4. QUATERNARY INFO (3-5%) - Calm Blue */
+        --accent-tertiary: 14 165 233;   /* #0EA5E9 (Sky-500) */
+        --accent-tertiary-dim: 56 189 248;
+        --accent-tertiary-fg: 255 255 255;
+        
+        /* Shadows */
+        --shadow-color: 24 24 27;
+        --shadow-strength: 0.06;
+      }
+
+      .dark {
+        /* --- DARK MODE --- */
+        
+        /* 1. PRIMARY FOUNDATION - Near Black */
+        --bg-primary: 3 3 3;         /* #030303 */
+        --bg-surface: 9 9 11;        /* #09090B */
+        --bg-surface-raised: 24 24 27; /* #18181B */
+        --bg-surface-highlight: 39 39 42; /* #27272A */
+        
+        --text-primary: 250 250 250; /* #FAFAFA */
+        --text-secondary: 161 161 170; /* #A1A1AA */
+        --text-tertiary: 113 113 122;  /* #71717A */
+        --text-inverse: 0 0 0;
+        
+        --border-base: 255 255 255;
+        
+        /* 2. SECONDARY ACTION - Neon/Leaf Green */
+        --accent-primary: 209 242 94;    /* #D1F25E (Neon Lime) */
+        --accent-primary-dim: 184 214 77; /* #B8D64D */
+        --accent-primary-fg: 0 0 0;
+
+        /* 3. TERTIARY EMPHASIS - Soft Orange */
+        --accent-secondary: 251 146 60;  /* #FB923C (Orange-400) */
+        --accent-secondary-dim: 253 186 116;
+        --accent-secondary-fg: 0 0 0;
+
+        /* 4. QUATERNARY INFO - Muted Blue */
+        --accent-tertiary: 56 189 248;   /* #38BDF8 (Sky-400) */
+        --accent-tertiary-dim: 125 211 252;
+        --accent-tertiary-fg: 0 0 0;
+
+        /* Shadows */
+        --shadow-color: 0 0 0;
+        --shadow-strength: 0.5;
+      }
+
+      /* Premium Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgb(var(--bg-primary));
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgb(var(--bg-surface-highlight));
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgb(var(--text-secondary));
+      }
+      
+      body {
+        background-color: rgb(var(--bg-primary));
+        color: rgb(var(--text-primary));
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        selection-background-color: rgb(var(--accent-primary) / 0.3);
+        selection-color: rgb(var(--text-primary));
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      .glass-panel {
+        background: rgba(var(--bg-primary) / 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgb(var(--border-base) / 0.08);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+      
+      /* Utilities */
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px -10px rgba(var(--shadow-color) / var(--shadow-strength));
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Manrope', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              background: 'rgb(var(--bg-primary) / <alpha-value>)',
+              surface: 'rgb(var(--bg-surface) / <alpha-value>)',
+              surfaceHighlight: 'rgb(var(--bg-surface-highlight) / <alpha-value>)',
+              
+              // Text Tokens
+              textMain: 'rgb(var(--text-primary) / <alpha-value>)',
+              textSecondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+              textMuted: 'rgb(var(--text-tertiary) / <alpha-value>)',
+              textInverse: 'rgb(var(--text-inverse) / <alpha-value>)',
+
+              // Semantic Accents
+              accent: {
+                primary: 'rgb(var(--accent-primary) / <alpha-value>)',
+                secondary: 'rgb(var(--accent-secondary) / <alpha-value>)',
+                tertiary: 'rgb(var(--accent-tertiary) / <alpha-value>)',
+              },
+              // Foreground colors for accents (text on button)
+              accentFg: {
+                primary: 'rgb(var(--accent-primary-fg) / <alpha-value>)',
+                secondary: 'rgb(var(--accent-secondary-fg) / <alpha-value>)',
+                tertiary: 'rgb(var(--accent-tertiary-fg) / <alpha-value>)',
+              },
+              
+              border: 'rgb(var(--border-base) / 0.1)', 
+              borderHover: 'rgb(var(--border-base) / 0.2)',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.6s ease-out forwards',
+              'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'marquee': 'marquee 40s linear infinite',
+              'spin-slow': 'spin 4s linear infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { transform: 'translateY(16px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              marquee: {
+                '0%': { transform: 'translateX(0)' },
+                '100%': { transform: 'translateX(-50%)' },
+              },
+              spin: {
+                'from': { transform: 'rotate(0deg)' },
+                'to': { transform: 'rotate(360deg)' },
+              }
+            },
+            boxShadow: {
+              'premium': '0 20px 40px -15px rgba(var(--shadow-color) / var(--shadow-strength))',
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
