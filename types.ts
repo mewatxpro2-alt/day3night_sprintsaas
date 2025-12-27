@@ -21,6 +21,12 @@ export interface Listing {
   isLive: boolean;
   featured?: boolean;
   previewUrl?: string;
+  screenshot_urls?: string[];
+  tagline?: string;
+  short_summary?: string;
+  category_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface StatMetric {

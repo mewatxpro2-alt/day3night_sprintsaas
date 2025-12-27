@@ -1,105 +1,173 @@
 import React, { useState } from 'react';
-import { Github, Mail, ArrowRight, Lock } from 'lucide-react';
-import Button from '../components/Button';
-import { ViewState } from '../types';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useUserRole } from '../hooks/useUserRole';
+import Logo from '../components/Logo';
 
-interface SignInProps {
-  onNavigate: (view: ViewState) => void;
-}
+const SignIn: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-const SignIn: React.FC<SignInProps> = ({ onNavigate }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, isAuthenticated } = useAuth();
+  const { hasSellerActivity, loading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated with smart routing
+  React.useEffect(() => {
+    if (isAuthenticated && !roleLoading) {
+      const from = (location.state as any)?.from;
+      const destination = from || (hasSellerActivity ? '/seller' : '/mvp-kits');
+      navigate(destination, { replace: true });
+    }
+  }, [isAuthenticated, roleLoading, hasSellerActivity, navigate, location]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate auth
-    setTimeout(() => {
-      setIsLoading(false);
-      onNavigate(ViewState.DASHBOARD);
-    }, 1500);
+    setError('');
+    setLoading(true);
+
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+    // Navigation will be handled by useEffect after auth state updates
   };
 
   return (
-    <div className="pt-32 pb-20 px-6 min-h-screen flex items-center justify-center animate-fade-in">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-display font-bold text-white mb-2">
-            {isLogin ? 'Welcome back' : 'Start shipping'}
-          </h1>
-          <p className="text-textMuted">
-            {isLogin 
-              ? 'Access your saved kits and seller dashboard.' 
-              : 'Join 15,000+ founders building with WebCatalog Pro.'}
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 -left-48 w-96 h-96 bg-accent-primary/10 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-accent-secondary/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-tertiary/5 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      {/* Main card */}
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8 animate-slide-up">
+          <div className="flex justify-center mb-4">
+            <Logo variant="primary" size="lg" />
+          </div>
+          <p className="text-textMuted text-sm font-medium">
+            Access your curated design marketplace
           </p>
         </div>
 
-        <div className="bg-surface border border-border rounded-2xl p-8 shadow-2xl">
-          <div className="space-y-4 mb-8">
-            <button className="w-full h-12 bg-white text-black font-medium rounded-lg flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors">
-              <Github size={20} />
-              Continue with GitHub
-            </button>
-            <button className="w-full h-12 bg-[#1A1A1F] text-white border border-white/10 font-medium rounded-lg flex items-center justify-center gap-3 hover:bg-[#25252A] transition-colors">
-              <Mail size={20} />
-              Continue with Google
-            </button>
+        {/* Sign-in card */}
+        <div className="bg-surface/90 backdrop-blur-xl border border-border rounded-2xl p-8 shadow-2xl animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-textMain mb-2">Welcome back</h2>
+            <p className="text-textMuted text-sm">Sign in to continue to your dashboard</p>
           </div>
 
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-surface px-2 text-textMuted">Or continue with email</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email field */}
             <div>
-              <label className="block text-xs font-medium text-textMuted mb-1.5 uppercase tracking-wide">Email</label>
-              <input 
-                type="email" 
-                required
-                placeholder="you@startup.com"
-                className="w-full bg-surfaceHighlight border border-border rounded-lg px-4 py-3 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-all"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-medium text-textMuted mb-1.5 uppercase tracking-wide">Password</label>
+              <label className="block text-sm font-bold text-textMain mb-2">
+                Email address
+              </label>
               <div className="relative">
-                <input 
-                  type="password" 
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" size={18} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
                   required
-                  placeholder="••••••••"
-                  className="w-full bg-surfaceHighlight border border-border rounded-lg px-4 py-3 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+                  className="w-full h-12 pl-12 pr-4 bg-surfaceHighlight border border-border rounded-xl text-textMain placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all font-medium"
                 />
-                <Lock size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-textMuted opacity-50" />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-              {isLogin ? 'Sign In' : 'Create Account'}
-            </Button>
+            {/* Password field */}
+            <div>
+              <label className="block text-sm font-bold text-textMain mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-textMuted" size={18} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="w-full h-12 pl-12 pr-12 bg-surfaceHighlight border border-border rounded-xl text-textMain placeholder:text-textMuted focus:outline-none focus:ring-2 focus:ring-accent-primary/50 focus:border-accent-primary/50 transition-all font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-textMuted hover:text-textMain transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg animate-fade-in">
+                <p className="text-red-500 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Sign in button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-accent-primary hover:bg-accent-primary-dim text-accentFg-primary font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-accent-primary/20 hover:shadow-accent-primary/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-textMuted">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-white hover:text-accent font-medium transition-colors"
+          {/* Footer links */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <div className="flex items-center justify-between text-sm">
+              <Link
+                to="/signup"
+                className="text-textMuted hover:text-accent-primary transition-colors font-medium"
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
-            </p>
+                Create account
+              </Link>
+              <Link
+                to="/forgot-password"
+                className="text-textMuted hover:text-accent-primary transition-colors font-medium"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
         </div>
 
-        <p className="text-center text-xs text-textMuted mt-8 opacity-60">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+        {/* Bottom text */}
+        <p className="text-center text-xs text-textMuted/60 mt-6">
+          By continuing, you agree to our{' '}
+          <Link to="/terms" className="text-accent-primary hover:underline">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link to="/privacy" className="text-accent-primary hover:underline">
+            Privacy Policy
+          </Link>
         </p>
       </div>
     </div>

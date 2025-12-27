@@ -1,6 +1,9 @@
-import React from 'react';
+import React from 'react'; // Force rebuild
 import ReactDOM from 'react-dom/client';
 import App from './App';
+
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,6 +13,9 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <Toaster position="top-right" />
+      <App />
+    </HelmetProvider>
   </React.StrictMode>
 );

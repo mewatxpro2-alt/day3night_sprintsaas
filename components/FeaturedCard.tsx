@@ -1,97 +1,172 @@
-import React from 'react';
-import { Eye, Heart, ArrowUpRight } from 'lucide-react';
-import { Listing } from '../types';
+import React, { useState, MouseEvent } from 'react';
+import { Heart, ChevronLeft, ChevronRight, ImageIcon, CheckCircle, Sparkles } from 'lucide-react';
+import type { Listing } from '../types';
 
 interface FeaturedCardProps {
   listing: Listing;
   onClick: (id: string) => void;
+  isPurchased?: boolean;
 }
 
-const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick }) => {
+const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick, isPurchased = false }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const allImages = [
+    listing.image,
+    ...(listing.screenshot_urls || [])
+  ].filter(Boolean) as string[];
+
+  const handlePrevImage = (e: MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e: MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleDotClick = (e: MouseEvent, index: number) => {
+    e.stopPropagation();
+    setCurrentImageIndex(index);
+  };
+
   return (
-    <div 
+    <div
+      className="group flex flex-col gap-4 cursor-pointer"
       onClick={() => onClick(listing.id)}
-      className="group relative flex flex-col h-full cursor-pointer rounded-2xl bg-surface border border-border hover:border-accent-primary/30 transition-all duration-300 shadow-sm hover:shadow-premium hover:-translate-y-[2px]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Area */}
-      <div className="p-3 pb-0">
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-surfaceHighlight border border-border/50 group-hover:border-border transition-colors">
-          <img 
-            src={listing.image} 
-            alt={listing.title} 
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]" 
-          />
-          
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+      {/* Visual Content Area */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface border border-border group-hover:border-border/60 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-500">
 
-          {/* Top Badges */}
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-            {/* Category: Blue (Info) */}
-            <span className="px-2.5 py-1 rounded-md bg-surface/95 backdrop-blur-md border border-border text-accent-tertiary text-[10px] font-semibold tracking-wide shadow-sm flex items-center gap-1.5">
-               {listing.category}
+        {/* Images Carousel */}
+        {allImages.length > 0 ? (
+          <div className="relative w-full h-full bg-[#f8fafc] dark:bg-[#0f172a]">
+            {allImages.map((img, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 transition-opacity duration-300 ${index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                  }`}
+              >
+                <img
+                  src={img}
+                  alt={listing.title}
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-surfaceHighlight text-textMuted">
+            <ImageIcon size={32} strokeWidth={1.5} />
+          </div>
+        )}
+
+        {/* Floating Badges - Top Left */}
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+          {isPurchased ? (
+            <span className="px-3 py-1.5 rounded-full bg-accent-primary/95 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1.5 ring-1 ring-white/20">
+              <CheckCircle size={11} strokeWidth={3} />
+              OWNED
             </span>
-            
-            {/* Price or Featured Badge */}
-             {listing.featured ? (
-                 // Featured: Orange (Emphasis)
-                <span className="px-2.5 py-1 rounded-md bg-accent-secondary text-white text-[10px] font-bold tracking-wide shadow-sm">
-                    FEATURED
+          ) : (
+            <>
+              {listing.featured && (
+                <span className="self-start px-3 py-1.5 rounded-full bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1.5 ring-1 ring-white/20">
+                  <Sparkles size={11} strokeWidth={2.5} />
+                  FEATURED
                 </span>
-             ) : (
-                 // Price: Neutral
-                <span className="px-2.5 py-1 rounded-md bg-surface/95 backdrop-blur-md border border-border text-textMain text-[10px] font-bold tracking-wide shadow-sm">
-                    {listing.price === 0 ? 'Free' : `$${listing.price}`}
-                </span>
-             )}
-          </div>
-
-          {/* Hover Action - Bottom Center */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 pointer-events-none">
-             <div 
-                className="bg-white/95 backdrop-blur text-accent-primary px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 border border-accent-primary/10"
-             >
-                View Details <ArrowUpRight size={14} className="text-accent-primary transition-transform duration-300 group-hover:translate-x-1" />
-             </div>
-          </div>
+              )}
+            </>
+          )}
         </div>
+
+        {/* Carousel Controls */}
+        {allImages.length > 1 && (
+          <div className={`transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
+            >
+              <ChevronLeft size={18} strokeWidth={2} />
+            </button>
+            <button
+              onClick={handleNextImage}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
+            >
+              <ChevronRight size={18} strokeWidth={2} />
+            </button>
+
+            {/* Minimal Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 p-1.5 rounded-full bg-black/20 backdrop-blur-sm">
+              {allImages.slice(0, 5).map((_, idx) => (
+                <div
+                  key={idx}
+                  onClick={(e) => handleDotClick(e, idx)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'bg-white scale-100' : 'bg-white/40 scale-75'
+                    }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Like Button */}
+        <button
+          className={`absolute top-4 right-4 z-30 p-2 rounded-full bg-white/90 backdrop-blur-md text-slate-400 transition-all duration-300 shadow-sm hover:scale-110 hover:text-red-500 hover:bg-white ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+            }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            // TODO: Hook up toggleSave logic
+          }}
+        >
+          <Heart size={18} strokeWidth={listing.likes > 0 ? 0 : 2} className={listing.likes > 0 ? "fill-red-500 text-red-500" : ""} />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="px-5 py-5 flex flex-col flex-1">
-        <div className="flex justify-between items-start mb-2">
-            <h3 className="text-base font-bold text-textMain group-hover:text-accent-primary transition-colors leading-tight font-display tracking-tight">
-              {listing.title}
-            </h3>
-        </div>
-        
-        <p className="text-[13px] text-textSecondary mb-4 line-clamp-2 leading-relaxed font-medium">
-          {listing.description}
-        </p>
-        
-        <div className="flex flex-wrap gap-1.5 mb-6">
-          {listing.techStack.slice(0, 3).map(tech => (
-             <span key={tech} className="px-2 py-0.5 rounded text-[10px] text-textMuted border border-border bg-surfaceHighlight flex items-center gap-1 font-mono">
-                {tech}
-             </span>
-          ))}
+      {/* Info Content - Clean & Structured */}
+      <div className="flex flex-col gap-3 px-1">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1 min-w-0 space-y-1">
+            {/* Title & Tagline Group */}
+            <div>
+              <h3 className="text-lg font-display font-semibold text-textMain leading-tight truncate group-hover:text-accent-primary transition-colors">
+                {listing.title}
+              </h3>
+              {listing.tagline && (
+                <p className="text-sm font-medium text-textSecondary line-clamp-1 mt-0.5">
+                  {listing.tagline}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Price Pill */}
+          <div className="shrink-0">
+            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold tracking-tight border ${listing.price === 0
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                : 'bg-surfaceHighlight text-textMain border-border'
+              }`}>
+              {listing.price === 0 ? 'Free' : `$${listing.price}`}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
-           <div className="flex items-center gap-2 group/creator">
-              <img src={listing.creator.avatar} className="w-5 h-5 rounded-full ring-1 ring-border opacity-90 group-hover/creator:opacity-100 transition-opacity" alt="" />
-              <div className="flex flex-col">
-                  <span className="text-[11px] text-textSecondary font-medium group-hover/creator:text-textMain transition-colors leading-none">{listing.creator.name}</span>
-              </div>
-           </div>
-           
-           <div className="flex items-center gap-3 text-[10px] text-textMuted font-mono">
-               <span className="flex items-center gap-1 group-hover:text-textMain transition-colors">
-                 <Heart size={12} className="group-hover:text-accent-secondary transition-colors" /> {listing.likes}
-               </span>
-               <span className="flex items-center gap-1 group-hover:text-textMain transition-colors">
-                 <Eye size={12} /> {listing.views > 1000 ? `${(listing.views / 1000).toFixed(1)}k` : listing.views}
-               </span>
-           </div>
+        {/* Creator & Meta - Minimal */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="w-5 h-5 rounded-full bg-surfaceHighlight border border-border flex items-center justify-center overflow-hidden">
+            {listing.creator.avatar ? (
+              <img src={listing.creator.avatar} alt={listing.creator.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[9px] font-bold text-textMuted">{listing.creator.name?.[0]}</span>
+            )}
+          </div>
+          <span className="text-xs font-medium text-textMuted group-hover:text-textSecondary transition-colors">
+            {listing.creator.name}
+          </span>
         </div>
       </div>
     </div>

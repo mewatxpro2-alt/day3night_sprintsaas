@@ -8,27 +8,27 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
-  isLoading, 
+const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  isLoading,
   icon,
   className = '',
-  ...props 
+  ...props
 }) => {
   const baseStyles = "relative group inline-flex items-center justify-center font-semibold transition-all duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none rounded-lg tracking-tight hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-  
+
   const variants = {
-    // Primary: Action (Green)
-    primary: "bg-accent-primary text-accentFg-primary shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)] hover:bg-accent-primary/90 hover:shadow-[0_4px_12px_-4px_rgba(var(--accent-primary)/0.4)]",
-    
+    // Primary: Action (Green) - Black text for better contrast
+    primary: "bg-accent-primary text-black shadow-[0_1px_2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)] hover:bg-accent-primary/90 hover:shadow-[0_4px_12px_-4px_rgba(var(--accent-primary)/0.4)]",
+
     // Secondary: Surface based
     secondary: "bg-surface text-textMain hover:bg-surfaceHighlight shadow-sm border border-border",
-    
+
     // Ghost: No background until hover
-    ghost: "text-textMuted hover:bg-surfaceHighlight hover:text-textMain hover:translate-y-0", 
-    
+    ghost: "text-textMuted hover:bg-surfaceHighlight hover:text-textMain hover:translate-y-0",
+
     // Outline: Very subtle border
     outline: "border border-border text-textSecondary hover:text-textMain hover:border-borderHover hover:bg-surfaceHighlight",
 
@@ -43,7 +43,7 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <button 
+    <button
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >

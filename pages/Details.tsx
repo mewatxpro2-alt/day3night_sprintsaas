@@ -1,339 +1,401 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ExternalLink, Globe, Layout, ShieldCheck, MessageCircle, Star, Play, Loader2, Maximize2, Lock, CheckCircle, FileText, Clock, GitBranch, Zap, Bookmark, XCircle, HelpCircle, PackageCheck, FileCode } from 'lucide-react';
-import { Listing } from '../types';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ExternalLink, Globe, ShieldCheck, MessageCircle, Star, Play, Loader2, Maximize2, Lock, CheckCircle, XCircle, HelpCircle, PackageCheck, FileCode, Zap, Bookmark, Download, Eye, ChevronRight, Images, Code2, Video as VideoIcon } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
+import type { Listing } from '../lib/database.types';
 import Button from '../components/Button';
+import PurchaseButton from '../components/PurchaseButton';
+import { useToggleSave, useSavedItems } from '../hooks/useSavedItems';
 
-interface DetailsProps {
-  listing: Listing;
-  onBack: () => void;
-}
+import InquiryModal from '../components/InquiryModal';
+import TrustSignals from '../components/TrustSignals';
+import { Link } from 'react-router-dom';
 
-const Details: React.FC<DetailsProps> = ({ listing, onBack }) => {
+const Details: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const { toggleSave, isLoading: saveLoading } = useToggleSave();
+  const { savedListingIds, refetch } = useSavedItems();
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPreviewActive, setIsPreviewActive] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [purchasedOrderId, setPurchasedOrderId] = useState<string | null>(null);
+  const [isInquiryModalOpen, setIsInquiryModalOpen] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState<'standard' | 'extended' | 'buyout'>('standard');
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*, tagline, setup_time, deliverables, perfect_for, not_for, what_buyer_gets, screenshot_urls, creator:profiles!listings_creator_id_fkey(id, full_name, avatar_url, is_verified_seller, seller_level, rating_average, rating_count, total_sales, completion_rate), category:categories(title)')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setListing(data);
+
+        // Increment view count (fire and forget)
+        supabase.from('listings')
+          .update({ views_count: (data.views_count || 0) + 1 })
+          .eq('id', id)
+          .then(() => { });
+      } catch (error) {
+        console.error('Error fetching listing:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchListing();
+  }, [id]);
+
+  // Check if user has already purchased this listing
+  useEffect(() => {
+    const checkPurchaseStatus = async () => {
+      if (!user || !id) return;
+
+      try {
+        const { data: order } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('buyer_id', user.id)
+          .eq('listing_id', id)
+          .in('status', ['paid', 'delivered', 'completed'])
+          .maybeSingle();
+
+        if (order) {
+          setPurchasedOrderId(order.id);
+        }
+      } catch (err) {
+        console.error('Error checking purchase status:', err);
+      }
+    };
+
+    checkPurchaseStatus();
+  }, [user, id]);
+
+  const handleToggleSave = async () => {
+    if (!isAuthenticated || !listing) {
+      navigate('/signin');
+      return;
+    }
+    await toggleSave(listing.id);
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin text-accent-primary" size={32} />
+      </div>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-textMuted">Kit not found</p>
+        <Button onClick={() => navigate('/mvp-kits')}>Back to Blueprints</Button>
+      </div>
+    );
+  }
+
+  const isSaved = savedListingIds.has(listing.id);
 
   return (
-    <div className="pt-24 pb-20 animate-slide-up min-h-screen">
-      {/* Navigation / Header */}
+    <div className="pt-24 pb-20 min-h-screen bg-background text-textMain selection:bg-accent-primary/20">
+      <InquiryModal
+        isOpen={isInquiryModalOpen}
+        onClose={() => setIsInquiryModalOpen(false)}
+        listingId={listing.id}
+        listingTitle={listing.title}
+        sellerId={listing.creator_id}
+        sellerName={listing.creator?.full_name || 'Creator'}
+      />
+
+      {/* BREADCRUMB - Clean & Simple */}
       <div className="max-w-7xl mx-auto px-6 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <button 
-            onClick={onBack}
-            className="group flex items-center gap-2 text-textMuted hover:text-textMain transition-colors text-sm font-medium"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 
-            Back to Catalog
-          </button>
-          
-          <div className="flex items-center gap-3">
-            <span className="hidden md:flex items-center gap-1.5 text-xs text-textMuted mr-2">
-              <ShieldCheck size={14} className="text-accent-primary" />
-              Verified Logic
-            </span>
-            {/* Feature 3: Save for Later (Soft Exit) */}
-            <Button 
-              variant="ghost" 
-              icon={<Bookmark size={16} className={isSaved ? "fill-current" : ""} />}
-              onClick={() => setIsSaved(!isSaved)}
-            >
-              {isSaved ? 'Saved' : 'Save'}
-            </Button>
-            <Button variant="outline" icon={<MessageCircle size={16} />}>Ask Builder</Button>
-            <Button icon={<Lock size={14} />}>
-              {listing.price > 0 ? `Get Full Access • $${listing.price}` : 'Download Kit'}
-            </Button>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-textMuted">
+          <span onClick={() => navigate('/mvp-kits')} className="hover:text-textMain cursor-pointer transition-colors">Catalog</span>
+          <ChevronRight size={14} className="text-border" />
+          <span onClick={() => navigate(`/mvp-kits?category=${listing.category?.title}`)} className="hover:text-textMain cursor-pointer transition-colors">{listing.category?.title || 'SaaS'}</span>
         </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-10">
-        
-        {/* Left Column: Preview & Narrative */}
-        <div className="lg:col-span-2 space-y-8">
-          
-          {/* Simulated Browser Window */}
-          <div className="rounded-xl border border-border bg-surface overflow-hidden shadow-2xl ring-1 ring-white/5">
-            <div className="h-10 bg-[#0A0A0B] border-b border-border flex items-center px-4 gap-4 justify-between">
-              <div className="flex gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-              </div>
-              
-              {/* URL Bar */}
-              <div className="flex-1 flex justify-center max-w-md">
-                <div className="w-full px-4 py-1 rounded bg-black/40 text-xs text-textMuted font-mono flex items-center justify-center gap-2 overflow-hidden truncate border border-white/5">
-                  <Lock size={10} className="text-accent-primary shrink-0" />
-                  <span className="opacity-50">https://</span>
-                  <span className="text-white opacity-80">{listing.previewUrl ? new URL(listing.previewUrl).hostname : `production.${listing.id}.app`}</span>
-                </div>
-              </div>
+      {/* MAIN LAYOUT GRID */}
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-              {/* External Link Action */}
-              <div className="flex items-center">
-                 {listing.previewUrl && (
-                   <a 
-                     href={listing.previewUrl} 
-                     target="_blank" 
-                     rel="noopener noreferrer"
-                     className="text-textMuted hover:text-white transition-colors p-1"
-                     title="Open in new tab"
-                   >
-                     <Maximize2 size={14} />
-                   </a>
-                 )}
-              </div>
-            </div>
-            
-            <div className="relative aspect-video w-full bg-[#050505] overflow-hidden group">
-              {listing.previewUrl && isPreviewActive ? (
-                <>
-                  {/* Loader */}
-                  {!iframeLoaded && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface z-10">
-                      <Loader2 className="animate-spin text-accent-primary mb-2" size={32} />
-                      <p className="text-xs text-textMuted font-mono tracking-widest">CONNECTING TO PRODUCTION BUILD...</p>
-                    </div>
-                  )}
-                  {/* Live Iframe */}
-                  <iframe 
-                    src={listing.previewUrl}
-                    className={`w-full h-full border-0 transition-opacity duration-700 ${iframeLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    title="Live Preview"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups"
-                    loading="lazy"
-                    onLoad={() => setIframeLoaded(true)}
-                  />
-                  
-                  <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-1000 ${iframeLoaded ? 'opacity-0 translate-y-4' : 'opacity-100'}`}>
-                     <span className="px-4 py-2 bg-black/80 rounded-full text-[10px] text-white/70 border border-white/10 backdrop-blur-md shadow-lg font-mono">
-                       Interactive Sandbox Environment
-                     </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Static Placeholder */}
-                  <img 
-                    src={listing.image} 
-                    className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-[1.02] group-hover:opacity-100" 
-                    alt="Preview"
-                  />
-                  
-                  {/* Overlay CTA */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-[2px] transition-all duration-300 group-hover:bg-black/40">
-                     <Button 
-                       onClick={() => setIsPreviewActive(true)}
-                       className="shadow-[0_0_50px_-10px_rgba(209,242,94,0.4)] scale-100 hover:scale-105 transition-all duration-300 border-2 border-transparent hover:border-accent-primary/20"
-                       size="lg"
-                       icon={<Play size={18} fill="currentColor" />}
-                     >
-                        Launch Interactive Preview
-                     </Button>
-                     <p className="mt-6 text-xs text-white/70 font-medium tracking-widest uppercase flex items-center gap-2">
-                       <Zap size={12} className="text-accent-primary" />
-                       Real Production Build
-                     </p>
-                  </div>
-                </>
+        {/* LEFT CONTENT COLUMN (8 Cols) */}
+        <div className="lg:col-span-8">
+
+          {/* 1. PRODUCT HEADER - Pure Typography */}
+          <div className="mb-8 border-b border-border pb-8">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-surface border border-border text-textSecondary">
+                {listing.category?.title || 'Blueprint'}
+              </span>
+              {listing.views_count > 100 && (
+                <span className="text-xs text-textMuted flex items-center gap-1.5">
+                  <Eye size={14} /> {listing.views_count} views
+                </span>
               )}
             </div>
-          </div>
 
-          {/* Narrative / Description */}
-          <div className="prose prose-invert max-w-none text-textMain">
-            <div className="flex items-center justify-between mb-6 border-b border-border pb-6">
-               <h1 className="text-3xl font-display font-bold text-textMain m-0 tracking-tight">{listing.title}</h1>
-               <div className="flex items-center gap-2">
-                  <Star size={16} className="text-accent-secondary fill-accent-secondary" />
-                  <span className="text-textMain font-medium">{listing.creator.rating}</span>
-                  <span className="text-textMuted text-sm">({listing.views} views)</span>
-               </div>
-            </div>
-            
-            <h3 className="text-lg font-bold text-textMain">Why start with this foundation?</h3>
-            <p className="text-textMuted leading-relaxed text-lg">
-              {listing.description} Stop wasting weeks on boilerplate. This kit provides a battle-tested architecture that handles 
-              <span className="text-textMain font-bold"> Authentication, Database, and Payments</span> out of the box. 
-              It's clean, strictly typed, and designed for immediate scalability.
-            </p>
+            <h1 className="text-3xl md:text-5xl font-semibold text-textMain mb-4 tracking-tight leading-tight">
+              {listing.title}
+            </h1>
 
-            {/* ROI Anchor */}
-            <div className="my-8 p-5 rounded-lg bg-surfaceHighlight border border-border flex items-center gap-5">
-               <div className="p-3 bg-accent-primary/10 rounded-full text-accent-primary border border-accent-primary/20">
-                 <Clock size={24} />
-               </div>
-               <div>
-                 <p className="text-textMuted text-xs font-mono uppercase tracking-wider mb-1">Estimated ROI</p>
-                 <p className="text-textMain font-medium">
-                   Saves ~160 hours of development time. <span className="text-textMuted">(Worth $15,000+ in engineering costs)</span>
-                 </p>
-               </div>
-            </div>
+            {listing.short_summary && (
+              <p className="text-xl text-textSecondary leading-relaxed font-light max-w-3xl">
+                {listing.short_summary}
+              </p>
+            )}
 
-            {/* Feature 4 & 5: Use Cases & "Not For" (Churn Reduction) */}
-            <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-border">
-               <div>
-                  <h4 className="text-sm font-bold text-textMain mb-4 flex items-center gap-2">
-                     <CheckCircle size={16} className="text-accent-primary" />
-                     Perfect for
-                  </h4>
-                  <ul className="space-y-3">
-                     {[
-                        'SaaS MVP launches', 
-                        'High-performance internal tools', 
-                        'Freelance client deliverables',
-                        'Learning modern stack patterns'
-                     ].map(item => (
-                        <li key={item} className="flex items-start gap-2 text-sm text-textMuted">
-                           <span className="w-1 h-1 rounded-full bg-accent-primary/50 mt-2 shrink-0"></span>
-                           {item}
-                        </li>
-                     ))}
-                  </ul>
-               </div>
-               
-               <div className="bg-surfaceHighlight/30 p-5 rounded-xl border border-border/50">
-                  <h4 className="text-sm font-bold text-textMain mb-4 flex items-center gap-2">
-                     <XCircle size={16} className="text-textMuted" />
-                     Who this is NOT for
-                  </h4>
-                  <ul className="space-y-3">
-                     {[
-                        'Complete beginners to web dev',
-                        'Users looking for "No-code" tools',
-                        'Those needing a finished product',
-                     ].map(item => (
-                        <li key={item} className="flex items-start gap-2 text-sm text-textMuted">
-                           <span className="w-1 h-1 rounded-full bg-textMuted/40 mt-2 shrink-0"></span>
-                           {item}
-                        </li>
-                     ))}
-                  </ul>
-               </div>
-            </div>
-
-            {isPreviewActive && (
-              <div className="mt-4 p-4 rounded-lg bg-green-500/5 border border-green-500/10 flex items-start gap-3 animate-fade-in">
-                 <div className="p-1.5 bg-green-500/10 rounded-full text-green-400 mt-0.5">
-                   <Lock size={14} />
-                 </div>
-                 <div>
-                   <h4 className="text-green-400 font-bold text-sm">You are viewing the Live Demo</h4>
-                   <p className="text-green-400/60 text-xs mt-1">
-                     The codebase you purchase is identical to this deployment. All data is sandboxed.
-                   </p>
-                 </div>
+            {/* TECH STACK - Minimal Badges */}
+            {listing.tech_stack && listing.tech_stack.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-6">
+                {listing.tech_stack.map(tech => (
+                  <span key={tech} className="px-3 py-1.5 rounded border border-border bg-surface text-sm text-textSecondary">
+                    {tech}
+                  </span>
+                ))}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Right Column: The "Spec Sheet" Sidebar */}
-        <div className="space-y-6 lg:sticky lg:top-24 h-fit">
-          
-          {/* Main "Purchase" Card */}
-          <div className="p-6 rounded-xl bg-surface border border-border shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-primary/5 blur-[50px] rounded-full pointer-events-none" />
-            
-            <h3 className="text-xs font-bold text-textMuted mb-4 uppercase tracking-widest font-mono">Technical Manifest</h3>
-            
-            {/* Feature 2: Time to First Value */}
-            <div className="mb-6 flex items-center gap-2 text-xs font-medium text-textMain bg-surfaceHighlight border border-border px-3 py-2 rounded-lg">
-               <Zap size={14} className="text-accent-secondary" />
-               <span>Avg. setup time: 15-30 mins</span>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-8">
-              {listing.techStack.map(tech => (
-                <span key={tech} className="px-3 py-1.5 rounded-md border border-border bg-surfaceHighlight text-sm text-textMain hover:border-borderHover transition-colors cursor-default">
-                  {tech}
-                </span>
-              ))}
-            </div>
-            
-            <div className="space-y-4 pt-6 border-t border-border">
-              <h3 className="text-xs font-bold text-textMuted uppercase tracking-widest font-mono mb-2">Deliverables</h3>
-              
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-textMuted text-sm group">
-                  <GitBranch size={16} className="text-accent-primary mt-0.5 group-hover:text-textMain transition-colors" /> 
-                  <span className="group-hover:text-textMain transition-colors">Private Github Repo Access</span>
-                </li>
-                <li className="flex items-start gap-3 text-textMuted text-sm group">
-                  <ShieldCheck size={16} className="text-accent-primary mt-0.5 group-hover:text-textMain transition-colors" /> 
-                  <span className="group-hover:text-textMain transition-colors">Pre-configured Auth & DB</span>
-                </li>
-                <li className="flex items-start gap-3 text-textMuted text-sm group">
-                  <Globe size={16} className="text-accent-primary mt-0.5 group-hover:text-textMain transition-colors" /> 
-                  <span className="group-hover:text-textMain transition-colors">One-click Deployment</span>
-                </li>
-                 <li className="flex items-start gap-3 text-textMuted text-sm group">
-                  <FileText size={16} className="text-accent-primary mt-0.5 group-hover:text-textMain transition-colors" /> 
-                  <span className="group-hover:text-textMain transition-colors">Unlimited Commercial Use</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-border">
-                 <Button className="w-full h-12 text-base font-semibold shadow-[0_0_20px_-5px_rgba(209,242,94,0.3)]">
-                    Get Full Access • ${listing.price}
-                 </Button>
-                 
-                 {/* Feature 6: Ask Before Purchase */}
-                 <button className="w-full mt-3 text-xs text-textMuted hover:text-textMain transition-colors flex items-center justify-center gap-1.5 py-1">
-                    <HelpCircle size={12} />
-                    Still unsure? Ask a quick question.
-                 </button>
-
-                 {/* Feature 1 & 7: Assurance Box */}
-                 <div className="mt-6 p-3 rounded-lg bg-surfaceHighlight border border-border">
-                    <ul className="space-y-2">
-                       <li className="flex items-center gap-2 text-[11px] text-textMuted">
-                          <PackageCheck size={12} className="text-textMain shrink-0" />
-                          <span>Instant access after payment</span>
-                       </li>
-                       <li className="flex items-center gap-2 text-[11px] text-textMuted">
-                          <FileCode size={12} className="text-textMain shrink-0" />
-                          <span>Full source code included</span>
-                       </li>
-                       <li className="flex items-center gap-2 text-[11px] text-textMuted">
-                          <ShieldCheck size={12} className="text-textMain shrink-0" />
-                          <span>No lock-in or subscription</span>
-                       </li>
-                    </ul>
-                 </div>
-
-                 <div className="flex items-center justify-center gap-2 mt-4 opacity-50">
-                    <Lock size={12} className="text-textMuted" />
-                    <p className="text-[10px] text-textMuted uppercase tracking-wider">Secure Encrypted Checkout</p>
-                 </div>
-            </div>
-          </div>
-
-          {/* Creator Profile */}
-          <div className="p-6 rounded-xl bg-surface border border-border flex items-center gap-4">
-            <img src={listing.creator.avatar} alt={listing.creator.name} className="w-12 h-12 rounded-full border border-border" />
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium text-textMain text-sm">{listing.creator.name}</span>
-                {/* Verified -> Blue (Tertiary) */}
-                {listing.creator.verified && <ShieldCheck size={14} className="text-accent-tertiary" />}
+          {/* 2. MEDIA PREVIEW - Flat, Bordered */}
+          <div className="space-y-8 mb-12">
+            <div className="border border-border bg-black rounded-lg overflow-hidden">
+              {/* Simple minimal header */}
+              <div className="h-9 bg-surface border-b border-border flex items-center px-3 justify-between">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-border/50"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-border/50"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-border/50"></div>
+                </div>
               </div>
-              <p className="text-xs text-textMuted mt-0.5">Verified Merchant</p>
+
+              <div className="relative aspect-video w-full bg-[#111]">
+                {listing.preview_url && isPreviewActive ? (
+                  <>
+                    {!iframeLoaded && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="animate-spin text-textMuted" size={24} />
+                      </div>
+                    )}
+                    <iframe
+                      src={listing.preview_url}
+                      className="w-full h-full border-0"
+                      title="Live Preview"
+                      onLoad={() => setIframeLoaded(true)}
+                      allowFullScreen
+                    />
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src={listing.image_url || 'https://picsum.photos/800/600'}
+                      className="w-full h-full object-cover"
+                      alt="Preview"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer" onClick={() => setIsPreviewActive(true)}>
+                      <button className="bg-white text-black px-6 py-3 rounded-full font-medium flex items-center gap-2 hover:scale-105 transition-transform shadow-lg">
+                        <Play size={18} fill="currentColor" /> Live Preview
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <Button variant="outline" size="sm" className="h-8 text-xs">Profile</Button>
+
+            {/* SCREENSHOTS GRID - Clean & Tight */}
+            {listing.screenshot_urls && listing.screenshot_urls.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {listing.screenshot_urls.map((url, idx) => (
+                  <div key={idx} className="aspect-[4/3] rounded border border-border bg-surface overflow-hidden cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => window.open(url, '_blank')}>
+                    <img
+                      src={url}
+                      alt={`Interface ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* VIDEO LINK - Simple Text Link */}
+            {listing.demo_video_url && (
+              <div className="flex items-center gap-3 p-4 border border-border rounded bg-surface">
+                <div className="p-2 bg-surfaceHighlight rounded text-textMain">
+                  <VideoIcon size={20} className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-textMain">Walkthrough Video</div>
+                  <a href={listing.demo_video_url} target="_blank" rel="noreferrer" className="text-xs text-textSecondary hover:text-textMain underline">
+                    Watch full demo on Loom ↗
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
-          
-          <div className="text-center">
-             <p className="text-xs text-textMuted leading-relaxed max-w-[250px] mx-auto">
-               Code is manually audited for security and performance before listing.
-             </p>
+
+          {/* 3. DETAILS - Linear Flow */}
+          <div className="space-y-12">
+
+            {/* Technical Overview */}
+            <section>
+              <h3 className="text-xl font-semibold text-textMain mb-4">Technical Overview</h3>
+              <div className="prose prose-invert prose-p:text-textSecondary prose-li:text-textSecondary max-w-none text-base leading-7 whitespace-pre-line">
+                {listing.description}
+              </div>
+            </section>
+
+            {/* Features List */}
+            {listing.features && (
+              <section className="border-t border-border pt-8">
+                <h3 className="text-lg font-semibold text-textMain mb-6">Key Capabilities</h3>
+                <div className="grid md:grid-cols-1 gap-4">
+                  <div className="text-textSecondary whitespace-pre-line leading-relaxed">
+                    {listing.features}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Suitability */}
+            <section className="border-t border-border pt-8 grid md:grid-cols-2 gap-8">
+              {listing.perfect_for && (
+                <div>
+                  <h4 className="font-medium text-textMain mb-4 text-sm uppercase tracking-wide">Good for</h4>
+                  <ul className="space-y-3">
+                    {listing.perfect_for.map(item => (
+                      <li key={item} className="flex items-start gap-3 text-sm text-textSecondary">
+                        <CheckCircle size={16} className="text-textMain mt-0.5 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {listing.not_for && (
+                <div>
+                  <h4 className="font-medium text-textMain mb-4 text-sm uppercase tracking-wide">Not for</h4>
+                  <ul className="space-y-3">
+                    {listing.not_for.map(item => (
+                      <li key={item} className="flex items-start gap-3 text-sm text-textSecondary">
+                        <span className="text-textMuted mt-0.5 shrink-0">—</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
           </div>
 
         </div>
+
+        {/* RIGHT SIDEBAR - Clean, Functional */}
+        <div className="lg:col-span-4 pl-0 lg:pl-6 border-l border-border/0 lg:border-border">
+          <div className="sticky top-24 space-y-8">
+
+            {/* BUY BOX */}
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="text-3xl font-bold text-textMain">
+                    {listing.price === 0 ? 'Free' : `₹${listing.license_standard_price || listing.price}`}
+                  </span>
+                  <span className="text-sm text-textMuted">Standard License</span>
+                </div>
+                <p className="text-sm text-textSecondary">One-time payment. Lifetime access.</p>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <Button
+                  className="w-full h-12 text-base font-medium rounded-md"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/signin', { state: { from: `/checkout/${listing.id}?license=standard` } });
+                    } else {
+                      navigate(`/checkout/${listing.id}?license=standard`);
+                    }
+                  }}
+                >
+                  Acquire Blueprint
+                </Button>
+
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <Lock size={12} className="text-textMuted" />
+                  <span className="text-xs text-textMuted">Secure checkout via Stripe</span>
+                </div>
+              </div>
+
+              {/* Trust Items & Assets (Inside Buy Box) */}
+              <div className="border-t border-border pt-6 space-y-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-textMuted">Included Assets</h4>
+                <ul className="space-y-3">
+                  {listing.what_buyer_gets && listing.what_buyer_gets.map((item: string, i: number) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-textMain">
+                      <PackageCheck size={16} className="text-textSecondary shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+
+                  {listing.deliverables && listing.deliverables.map((item: string, i: number) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-textMain">
+                      <CheckCircle size={16} className="text-textSecondary shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+
+                  {!listing.what_buyer_gets?.length && !listing.deliverables?.length && (
+                    <>
+                      <li className="flex items-center gap-3 text-sm text-textMain">
+                        <Code2 size={16} className="text-textSecondary" />
+                        <span>Full Source Code</span>
+                      </li>
+                      <li className="flex items-center gap-3 text-sm text-textMain">
+                        <ShieldCheck size={16} className="text-textSecondary" />
+                        <span>Manual Code Audit</span>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+
+            {/* SELLER INFO - Separate Card */}
+            <div className="border-t border-border pt-6 mt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-surface border border-border overflow-hidden">
+                  {listing.creator?.avatar_url ? (
+                    <img src={listing.creator.avatar_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm font-bold">{listing.creator?.full_name?.[0]}</div>
+                  )}
+                </div>
+                <div>
+                  <Link to={`/seller/${listing.creator_id}`} className="text-sm font-medium text-textMain hover:underline block">
+                    {listing.creator?.full_name || 'Anonymous Creator'}
+                  </Link>
+                  <button onClick={() => setIsInquiryModalOpen(true)} className="text-xs text-textSecondary hover:text-textMain transition-colors">
+                    Ask a question
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );

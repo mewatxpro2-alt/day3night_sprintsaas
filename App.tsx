@@ -1,205 +1,191 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Button from './components/Button';
-import Dashboard from './pages/Dashboard';
-import Details from './pages/Details';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
+import AdminLayout from './layouts/AdminLayout';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Categories from './pages/Categories';
+import Dashboard from './pages/Dashboard';
 import Submit from './pages/Submit';
 import Pricing from './pages/Pricing';
 import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
 import Legal from './pages/Legal';
 import Contact from './pages/Contact';
 import ErrorPage from './pages/ErrorPage';
-import { MOCK_LISTINGS } from './constants';
-import { ViewState } from './types';
+import Details from './pages/Details';
+import About from './pages/About';
+import SellerProfile from './pages/SellerProfile';
+import Checkout from './pages/Checkout';
+import PaymentSuccess from './pages/PaymentSuccess';
+import Placeholder from './pages/Placeholder';
+import Licensing from './pages/Licensing';
+import HowItWorks from './pages/HowItWorks';
+import RevenueModel from './pages/RevenueModel';
+import SellerGuidelines from './pages/SellerGuidelines';
+import LicenseTypes from './pages/LicenseTypes';
+import ScrollToTop from './components/ScrollToTop';
+import Documentation from './pages/Documentation';
+import FAQs from './pages/FAQs';
+import Blog from './pages/Blog';
+import AuditProcess from './pages/AuditProcess';
+import TrustSecurity from './pages/TrustSecurity';
+import BlogPostPage from './pages/BlogPost';
+import Sitemap from './pages/Sitemap';
+// Admin Pages
+import AdminOverview from './pages/admin/Overview';
+import AdminSubmissions from './pages/admin/Submissions';
+import BlogManager from './pages/admin/BlogManager';
+import BlogEditor from './pages/admin/BlogEditor';
+import AdminKits from './pages/admin/Kits';
+import AdminUsers from './pages/admin/Users';
+import AdminConversations from './pages/admin/Conversations';
+import AdminOrders from './pages/admin/Orders';
+import AdminDisputes from './pages/admin/Disputes';
+import AdminSettings from './pages/admin/Settings';
+import AdminModerationLog from './pages/admin/ModerationLog';
+import AdminAbuseReports from './pages/admin/AbuseReports';
+import AdminTickets from './pages/admin/Tickets';
+// Seller Pages
+import SellerDashboard from './pages/seller/Dashboard';
+import SellerOrders from './pages/seller/Orders';
+import SellerPayouts from './pages/seller/Payouts';
+import SellerBankSetup from './pages/seller/BankSetup';
+import SellerListings from './pages/seller/Listings';
+import SellerMySubmissions from './pages/seller/MySubmissions';
+// Buyer Pages
+import OrderSuccess from './pages/OrderSuccess';
+import OrderDetails from './pages/OrderDetails';
+import MessagesPage from './pages/Messages';
+import RaiseDispute from './pages/RaiseDispute';
+import WishlistPage from './pages/dashboard/Wishlist';
+import RequestRefund from './pages/RequestRefund';
+// Ticket Pages
+import Tickets from './pages/Tickets';
+import TicketDetail from './pages/TicketDetail';
+import CreateTicket from './pages/CreateTicket';
+// Admin Pages - Extended
+import AdminRefunds from './pages/admin/Refunds';
+import AdminWithdrawals from './pages/admin/Withdrawals';
 
-const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>(ViewState.HOME);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Network State
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  // Only show the error screen if loaded offline OR user tries to navigate while offline
-  const [showErrorScreen, setShowErrorScreen] = useState(!navigator.onLine);
+function App() {
+  const { loading } = useAuth();
 
-  // Fake initial loading for "Premium App" feel
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Network Status Detection
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      setShowErrorScreen(false); // Auto-recover when internet comes back
-    };
-    
-    const handleOffline = () => {
-      setIsOnline(false);
-      // NOTE: We do NOT set setShowErrorScreen(true) here. 
-      // We wait for the user to try to do something.
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Centralized Navigation Handler
-  // This intercepts all navigation attempts to check for connectivity
-  const handleNavigate = (newView: ViewState) => {
-    if (!isOnline) {
-      setShowErrorScreen(true);
-      return;
-    }
-    setView(newView);
-    window.scrollTo(0, 0);
-  };
-
-  const handleListingClick = (id: string) => {
-    if (!isOnline) {
-      setShowErrorScreen(true);
-      return;
-    }
-    setSelectedListingId(id);
-    setView(ViewState.DETAILS);
-    window.scrollTo(0, 0);
-  };
-
-  const selectedListing = MOCK_LISTINGS.find(l => l.id === selectedListingId);
-
-  // Loading State
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#050505] flex items-center justify-center z-[100]">
+      <div className="fixed inset-0 bg-background flex items-center justify-center z-[100]">
         <div className="flex flex-col items-center gap-4 animate-fade-in">
-           <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center animate-bounce">
-              <div className="w-4 h-4 bg-background rounded-sm" />
-           </div>
-           <p className="text-textMuted font-mono text-sm tracking-widest">LOADING CATALOG</p>
+          <div className="w-12 h-12 bg-accent-primary rounded-xl flex items-center justify-center animate-bounce">
+            <div className="w-4 h-4 bg-background rounded-sm" />
+          </div>
+          <p className="text-textMuted font-mono text-sm tracking-widest">LOADING</p>
         </div>
       </div>
     );
   }
-
-  // Offline/Error State
-  if (showErrorScreen) {
-    return (
-      <ErrorPage 
-        type="offline" 
-        onRetry={() => window.location.reload()} 
-      />
-    );
-  }
-
-  const renderContent = () => {
-    switch (view) {
-      case ViewState.DETAILS:
-        if (selectedListing) {
-          return <Details listing={selectedListing} onBack={() => handleNavigate(ViewState.EXPLORE)} />;
-        }
-        return <Explore onListingClick={handleListingClick} />; // Fallback
-      
-      case ViewState.DASHBOARD:
-        return <Dashboard />;
-
-      case ViewState.EXPLORE:
-        return <Explore onListingClick={handleListingClick} />;
-
-      case ViewState.CATEGORIES:
-        return <Categories onNavigate={handleNavigate} />;
-
-      case ViewState.SUBMIT:
-        return <Submit />;
-
-      case ViewState.PRICING:
-        return <Pricing />;
-
-      case ViewState.SIGN_IN:
-        return <SignIn onNavigate={handleNavigate} />;
-
-      case ViewState.PRIVACY:
-        return <Legal type={ViewState.PRIVACY} />;
-
-      case ViewState.TERMS:
-        return <Legal type={ViewState.TERMS} />;
-
-      case ViewState.CONTACT:
-        return <Contact />;
-
-      case ViewState.HOME:
-      default:
-        return <Home onNavigate={handleNavigate} onListingClick={handleListingClick} />;
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-background text-textMain font-sans selection:bg-accent selection:text-black">
-      <Navbar onNavigate={handleNavigate} currentView={view} />
-      
-      {/* Page Content */}
-      <div className="min-h-[calc(100vh-400px)]">
-        {renderContent()}
-      </div>
-      
-      {/* Footer */}
-      <footer className="border-t border-border bg-surface py-20 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-           <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-white rounded-md"></div>
-                <span className="font-display font-bold text-white">WebCatalog</span>
-              </div>
-              <p className="text-textMuted text-sm leading-relaxed">
-                The premium marketplace for serious digital products. Built for the modern web.
-              </p>
-           </div>
-           
-           <div>
-             <h4 className="font-bold text-white mb-6">Marketplace</h4>
-             <ul className="space-y-4 text-sm text-textMuted">
-               <li><button onClick={() => handleNavigate(ViewState.EXPLORE)} className="hover:text-white transition-colors">Explore</button></li>
-               <li><button onClick={() => handleNavigate(ViewState.CATEGORIES)} className="hover:text-white transition-colors">Use Cases</button></li>
-               <li><button onClick={() => handleNavigate(ViewState.PRICING)} className="hover:text-white transition-colors">Pricing</button></li>
-             </ul>
-           </div>
-           
-           <div>
-             <h4 className="font-bold text-white mb-6">Support</h4>
-             <ul className="space-y-4 text-sm text-textMuted">
-               <li><button onClick={() => handleNavigate(ViewState.CONTACT)} className="hover:text-white transition-colors">Contact Us</button></li>
-               <li><button onClick={() => handleNavigate(ViewState.PRIVACY)} className="hover:text-white transition-colors">Privacy Policy</button></li>
-               <li><button onClick={() => handleNavigate(ViewState.TERMS)} className="hover:text-white transition-colors">Terms of Service</button></li>
-             </ul>
-           </div>
-           
-           <div>
-              <h4 className="font-bold text-white mb-6">Stay Updated</h4>
-              <p className="text-textMuted text-sm mb-4">New drops every Tuesday.</p>
-              <div className="flex gap-2">
-                 <input className="bg-black/30 border border-border rounded px-3 py-2 text-sm w-full focus:outline-none focus:border-accent" placeholder="Email" />
-                 <Button size="sm">Go</Button>
-              </div>
-           </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-border flex justify-between text-xs text-textMuted">
-           <span>© 2024 WebCatalog Pro Inc.</span>
-           <div className="flex gap-6">
-             <button onClick={() => handleNavigate(ViewState.PRIVACY)} className="hover:text-white">Privacy</button>
-             <button onClick={() => handleNavigate(ViewState.TERMS)} className="hover:text-white">Terms</button>
-           </div>
-        </div>
-      </footer>
-    </div>
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        {/* Public routes with MainLayout (Navbar + Footer) */}
+        <Route element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="mvp-kits" element={<Explore />} />
+          <Route path="use-cases" element={<Categories />} />
+          <Route path="pricing" element={<Pricing />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="about" element={<About />} />
+          <Route path="privacy" element={<Legal type="PRIVACY" />} />
+          <Route path="terms" element={<Legal type="TERMS" />} />
+          <Route path="licensing" element={<Licensing />} />
+          <Route path="how-it-works" element={<HowItWorks />} />
+          <Route path="revenue-model" element={<RevenueModel />} />
+          <Route path="seller-guidelines" element={<SellerGuidelines />} />
+          <Route path="license-types" element={<LicenseTypes />} />
+          <Route path="documentation" element={<Documentation />} />
+          <Route path="faqs" element={<FAQs />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:slug" element={<BlogPostPage />} />
+          <Route path="sitemap" element={<Sitemap />} />
+          <Route path="audit-process" element={<AuditProcess />} />
+          <Route path="trust-security" element={<TrustSecurity />} />
+          <Route path="listing/:id" element={<Details />} />
+          <Route path="seller/:id" element={<SellerProfile />} />
+          <Route path="checkout/:listingId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="payment-success/:orderId" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+        </Route>
+
+        {/* Auth routes with AuthLayout (no Navbar/Footer) */}
+        <Route element={<AuthLayout />}>
+          <Route path="signin" element={<SignIn />} />
+          <Route path="signup" element={<SignUp />} />
+        </Route>
+
+        {/* Protected routes - User Dashboard */}
+        <Route element={<MainLayout />}>
+          <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="dashboard/orders" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="dashboard/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+          <Route path="submit" element={<ProtectedRoute><Submit /></ProtectedRoute>} />
+        </Route>
+
+        {/* Order Pages */}
+        <Route element={<MainLayout />}>
+          <Route path="order/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+          <Route path="order/:id/success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+          <Route path="order/:id/dispute" element={<ProtectedRoute><RaiseDispute /></ProtectedRoute>} />
+          <Route path="order/:orderId/refund" element={<ProtectedRoute><RequestRefund /></ProtectedRoute>} />
+        </Route>
+        <Route path="messages/:orderId" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+
+        {/* Ticket Pages */}
+        <Route element={<MainLayout />}>
+          <Route path="tickets" element={<ProtectedRoute><Tickets /></ProtectedRoute>} />
+          <Route path="tickets/new" element={<ProtectedRoute><CreateTicket /></ProtectedRoute>} />
+          <Route path="tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
+        </Route>
+
+        {/* Seller routes */}
+        <Route element={<MainLayout />}>
+          <Route path="seller" element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>} />
+          <Route path="seller/orders" element={<ProtectedRoute><SellerOrders /></ProtectedRoute>} />
+          <Route path="seller/listings" element={<ProtectedRoute><SellerListings /></ProtectedRoute>} />
+          <Route path="seller/submissions" element={<ProtectedRoute><SellerMySubmissions /></ProtectedRoute>} />
+          <Route path="seller/payouts" element={<ProtectedRoute><SellerPayouts /></ProtectedRoute>} />
+          <Route path="seller/bank" element={<ProtectedRoute><SellerBankSetup /></ProtectedRoute>} />
+        </Route>
+
+        {/* Admin routes */}
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<AdminOverview />} />
+          <Route path="submissions" element={<AdminSubmissions />} />
+          <Route path="blog" element={<BlogManager />} />
+          <Route path="blog/new" element={<BlogEditor />} />
+          <Route path="blog/edit/:id" element={<BlogEditor />} />
+          <Route path="kits" element={<AdminKits />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="messages" element={<AdminConversations />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="disputes" element={<AdminDisputes />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="moderation-log" element={<AdminModerationLog />} />
+          <Route path="abuse-reports" element={<AdminAbuseReports />} />
+          <Route path="tickets" element={<AdminTickets />} />
+          <Route path="refunds" element={<AdminRefunds />} />
+          <Route path="withdrawals" element={<AdminWithdrawals />} />
+        </Route>
+
+        {/* Fallback Error Page */}
+        <Route path="/coming-soon" element={<MainLayout><Placeholder /></MainLayout>} />
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
