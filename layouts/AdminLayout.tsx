@@ -16,7 +16,8 @@ import {
     Flag,
     Shield,
     FileText,
-    Mail
+    Mail,
+    Headphones
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -34,6 +35,7 @@ const AdminLayout: React.FC = () => {
         { path: '/admin/users', label: 'Users', icon: Users },
         { path: '/admin/emails', label: 'Email Audience', icon: Mail },
         { path: '/admin/tickets', label: 'Support Tickets', icon: MessageSquare },
+        { path: '/admin/support', label: 'Support', icon: Headphones },
         { path: '/admin/blog', label: 'Blog Manager', icon: FileText },
         { path: '/admin/refunds', label: 'Refunds', icon: Flag },
         { path: '/admin/withdrawals', label: 'Withdrawals', icon: DollarSign },

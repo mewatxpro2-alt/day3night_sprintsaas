@@ -11,6 +11,7 @@ import Explore from './pages/Explore';
 import Categories from './pages/Categories';
 import Dashboard from './pages/Dashboard';
 import Submit from './pages/Submit';
+import SubmitNew from './pages/SubmitNew';
 import Pricing from './pages/Pricing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -18,7 +19,10 @@ import Legal from './pages/Legal';
 import Contact from './pages/Contact';
 import ErrorPage from './pages/ErrorPage';
 import Details from './pages/Details';
+import MVPKitPage from './pages/MVPKitPage';
 import About from './pages/About';
+import ProfilePage from './pages/Profile';
+import ApplyToSell from './pages/ApplyToSell';
 import SellerProfile from './pages/SellerProfile';
 import Checkout from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -36,6 +40,7 @@ import AuditProcess from './pages/AuditProcess';
 import TrustSecurity from './pages/TrustSecurity';
 import BlogPostPage from './pages/BlogPost';
 import Sitemap from './pages/Sitemap';
+import Onboarding from './pages/Onboarding';
 // Admin Pages
 import AdminOverview from './pages/admin/Overview';
 import AdminSubmissions from './pages/admin/Submissions';
@@ -71,6 +76,9 @@ import CreateTicket from './pages/CreateTicket';
 // Admin Pages - Extended
 import AdminRefunds from './pages/admin/Refunds';
 import AdminWithdrawals from './pages/admin/Withdrawals';
+import SupportInbox from './pages/admin/SupportInbox';
+// Support Chat
+import SupportChatButton from './components/SupportChatButton';
 
 function App() {
   const { loading } = useAuth();
@@ -114,7 +122,8 @@ function App() {
           <Route path="sitemap" element={<Sitemap />} />
           <Route path="audit-process" element={<AuditProcess />} />
           <Route path="trust-security" element={<TrustSecurity />} />
-          <Route path="listing/:id" element={<Details />} />
+          <Route path="listing/:id" element={<MVPKitPage />} />
+          <Route path="listing-legacy/:id" element={<Details />} />
           <Route path="seller/:id" element={<SellerProfile />} />
           <Route path="checkout/:listingId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="payment-success/:orderId" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
@@ -124,15 +133,20 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="signin" element={<SignIn />} />
           <Route path="signup" element={<SignUp />} />
+          <Route path="onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         </Route>
 
         {/* Protected routes - User Dashboard */}
         <Route element={<MainLayout />}>
           <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="apply-to-sell" element={<ProtectedRoute><ApplyToSell /></ProtectedRoute>} />
           <Route path="dashboard/orders" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="dashboard/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
-          <Route path="submit" element={<ProtectedRoute><Submit /></ProtectedRoute>} />
+          <Route path="submit" element={<ProtectedRoute><SubmitNew /></ProtectedRoute>} />
+          <Route path="submit-legacy" element={<ProtectedRoute><Submit /></ProtectedRoute>} />
         </Route>
+
 
         {/* Order Pages */}
         <Route element={<MainLayout />}>
@@ -178,12 +192,16 @@ function App() {
           <Route path="tickets" element={<AdminTickets />} />
           <Route path="refunds" element={<AdminRefunds />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
+          <Route path="support" element={<SupportInbox />} />
         </Route>
 
         {/* Fallback Error Page */}
         <Route path="/coming-soon" element={<MainLayout><Placeholder /></MainLayout>} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
+
+      {/* Global Support Chat Widget */}
+      <SupportChatButton />
     </BrowserRouter>
   );
 }

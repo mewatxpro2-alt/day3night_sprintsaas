@@ -26,9 +26,12 @@ const MainLayout: React.FC = () => {
                     {/* Main Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12 mb-20">
                         {/* Branding & What We Sell */}
+
                         <div className="col-span-2 md:col-span-3 lg:col-span-1">
                             <div className="mb-6">
-                                <Logo variant="primary" size="lg" />
+                                <span className="text-3xl md:text-4xl font-sans font-extrabold tracking-tighter text-[#EFEFEF] uppercase select-none">
+                                    SPRINTSAAS
+                                </span>
                             </div>
                             <p className="text-textMuted text-sm leading-relaxed mb-6 font-medium">
                                 Production-ready B2B SaaS applications — dashboards, platforms, and monetized MVPs.
@@ -52,7 +55,7 @@ const MainLayout: React.FC = () => {
                                 <li><Link to="/mvp-kits?category=Marketing" className="text-textMuted hover:text-textMain transition-colors">Landing Page SaaS</Link></li>
                                 <li><Link to="/mvp-kits?category=Dashboard" className="text-textMuted hover:text-textMain transition-colors">Dashboards & Admin Panels</Link></li>
                                 <li><Link to="/mvp-kits?category=AI" className="text-textMuted hover:text-textMain transition-colors">AI & Fintech Systems</Link></li>
-                                <li><Link to="/how-it-works" className="text-textMuted hover:text-textMain transition-colors font-medium text-accent-primary">How Buying Works</Link></li>
+                                <li><Link to="/how-it-works" className="text-textMuted hover:text-textMain transition-colors">How Buying Works</Link></li>
                             </ul>
                         </div>
 

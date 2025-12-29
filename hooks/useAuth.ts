@@ -25,33 +25,58 @@ export const useAuth = () => {
     };
 
     useEffect(() => {
+        let mounted = true;
+
+        // Timeout fallback - if auth doesn't resolve in 5 seconds, stop loading
+        const timeoutId = setTimeout(() => {
+            if (mounted) {
+                console.warn('Auth initialization timeout - proceeding without auth');
+                setLoading(false);
+            }
+        }, 5000);
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!mounted) return;
+            clearTimeout(timeoutId);
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchProfile(session.user.id);
+                fetchProfile(session.user.id).finally(() => {
+                    if (mounted) setLoading(false);
+                });
             } else {
                 setLoading(false);
             }
+        }).catch((err) => {
+            console.error('Auth session error:', err);
+            clearTimeout(timeoutId);
+            if (mounted) setLoading(false);
         });
 
         // Listen for auth changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!mounted) return;
             setSession(session);
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                fetchProfile(session.user.id).then(() => setLoading(false));
+                fetchProfile(session.user.id).finally(() => {
+                    if (mounted) setLoading(false);
+                });
             } else {
                 setProfile(null);
                 setLoading(false);
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            clearTimeout(timeoutId);
+            subscription.unsubscribe();
+        };
     }, []);
 
     const refreshProfile = async () => {

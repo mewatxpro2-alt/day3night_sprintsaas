@@ -358,10 +358,11 @@ const Home: React.FC = () => {
   return (
     <main>
       {/* Hero Section */}
-      <section className="pt-40 pb-20 md:pt-48 md:pb-32 px-6 relative overflow-hidden min-h-[90vh] flex flex-col justify-center">
+      <section className="pt-24 pb-20 md:pt-28 md:pb-32 px-6 relative overflow-hidden min-h-[90vh] flex flex-col justify-center">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-accent-primary/5 rounded-full blur-[160px] pointer-events-none opacity-40" />
 
         <div className="max-w-5xl mx-auto w-full flex flex-col items-center text-center relative z-10 animate-slide-up">
+
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surfaceHighlight border border-border text-[11px] font-mono text-textMuted mb-8 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-accent-secondary animate-pulse"></span>
@@ -369,28 +370,24 @@ const Home: React.FC = () => {
           </div>
 
           <div className="w-fit mx-auto flex flex-col items-center mb-10">
-            <h1 className="text-5xl md:text-8xl font-display font-bold text-textMain tracking-tighter leading-[1] mb-2 text-center">
-              Start with a finished <span className="text-accent-primary">SaaS.</span>
-            </h1>
-            <div className="w-1/2 min-w-[180px] h-px bg-border/50 my-6" />
-            <h1 className="text-5xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-textMain via-textMain to-textMuted tracking-tighter leading-[1] mt-2">
-              Not an empty repo.
+            <h1 className="text-4xl md:text-7xl font-display font-bold text-textMain tracking-tighter leading-[1.1] mb-2 text-center max-w-4xl">
+              Buy and sell real SaaS blueprints — <span className="text-accent-primary">built, tested, and ready to deploy.</span>
             </h1>
           </div>
 
-          <p className="text-lg md:text-xl text-textMuted/80 max-w-xl mx-auto mb-10 leading-relaxed font-light">
-            <strong>Don't start from zero.</strong> Acquire production-ready SaaS blueprints and market-tested MVPs. Built by founders, for founders.
+          <p className="text-lg md:text-xl text-textMuted/80 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+            Skip demos and half-finished ideas. Explore deployable MVPs and SaaS foundations built by real builders.
           </p>
 
           <div className="flex flex-wrap justify-center items-center gap-5">
             <Button size="lg" onClick={() => navigate('/mvp-kits')} className="h-12 px-8 shadow-xl shadow-accent-primary/10">
-              Browse Blueprints
+              Explore Blueprints
             </Button>
             <button
-              onClick={() => navigate('/submit')}
+              onClick={() => navigate('/apply-to-sell')}
               className="group relative h-12 px-8 rounded-lg bg-surface border border-border hover:border-textMain/20 hover:bg-surfaceHighlight transition-all duration-300 flex items-center gap-2"
             >
-              <span className="text-sm font-bold text-textMain">Sell Your Code</span>
+              <span className="text-sm font-bold text-textMain">Sell code</span>
               <ArrowRight size={16} className="text-textMuted group-hover:translate-x-1 group-hover:text-textMain transition-all" />
             </button>
           </div>
