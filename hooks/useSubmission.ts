@@ -19,12 +19,21 @@ interface SubmissionData {
     repoUrl: string;
 
     // Technical
-    techStack: string; // Comma-separated
+    techStack: string[]; // Array of technologies
     setupTime: string;
     architectureNotes?: string;
 
     // Pricing
     price: string;
+    currency?: string; // 'INR' | 'USD'
+    pricingType?: string; // 'one-time' | 'subscription'
+    productStage?: string; // 'mvp' | 'production' | 'experimental'
+    licenseType?: string; // 'personal' | 'commercial' | 'unlimited'
+
+    // Structured Description
+    executiveSummary?: string;
+    problemItSolves?: string;
+    complexityLevel?: string; // 'beginner' | 'intermediate' | 'advanced'
 
     // Features & Content
     features: string;
@@ -37,6 +46,19 @@ interface SubmissionData {
     thumbnailFile?: File;
     videoFile?: File;
     screenshotFiles?: File[];
+    demoVideoUrl?: string;
+
+    // Seller Credibility
+    sellerDisplayName?: string;
+    sellerBio?: string;
+    sellerExperienceLevel?: string;
+    sellerPriorProjects?: number;
+    sellerPortfolioUrl?: string;
+
+    // Trust Signals
+    supportLevel?: string;
+    hasRefundPolicy?: boolean;
+    hasMaintenanceCommitment?: boolean;
 
     // Resource Files (for buyer access)
     resourceFiles?: Array<{
@@ -124,7 +146,7 @@ export const useSubmitKit = (): UseSubmitKitResult => {
         if (!data.description.trim()) {
             return { success: false, error: 'Description is required' };
         }
-        if (!data.techStack.trim()) {
+        if (!data.techStack || data.techStack.length === 0) {
             return { success: false, error: 'Tech stack is required' };
         }
         if (!data.price || parseFloat(data.price) <= 0) {
@@ -178,30 +200,30 @@ export const useSubmitKit = (): UseSubmitKitResult => {
                     category: data.category,
 
                     // URLs
-                    live_url: data.liveUrl.trim() || null,
-                    repo_url: data.repoUrl.trim() || null,
+                    live_url: data.liveUrl?.trim() || null,
+                    repo_url: data.repoUrl?.trim() || null,
 
-                    // Technical
-                    tech_stack: data.techStack.trim(),
+                    // Technical - tech_stack is TEXT in current schema, not array
+                    tech_stack: Array.isArray(data.techStack) ? data.techStack.join(', ') : data.techStack,
                     setup_time: data.setupTime,
                     architecture_notes: data.architectureNotes?.trim() || null,
 
-                    // Pricing
+                    // Pricing - only price exists in current schema
                     price: parseFloat(data.price) || 0,
 
-                    // Features & Content
-                    features: data.features.trim() || null,
-                    deliverables: data.deliverables.length > 0 ? data.deliverables : null,
-                    perfect_for: data.perfectFor.length > 0 ? data.perfectFor : null,
-                    not_for: data.notFor.length > 0 ? data.notFor : null,
-                    what_buyer_gets: data.whatBuyerGets.length > 0 ? data.whatBuyerGets : null,
+                    // Features & Content - these exist from migration 024
+                    features: data.features?.trim() || null,
+                    deliverables: data.deliverables?.length > 0 ? data.deliverables : null,
+                    perfect_for: data.perfectFor?.length > 0 ? data.perfectFor : null,
+                    not_for: data.notFor?.length > 0 ? data.notFor : null,
+                    what_buyer_gets: data.whatBuyerGets?.length > 0 ? data.whatBuyerGets : null,
 
                     // Media
                     thumbnail_url: thumbnailUrl,
-                    video_url: videoUrl,
+                    video_url: videoUrl || data.demoVideoUrl?.trim() || null,
                     screenshot_urls: screenshotUrls.length > 0 ? screenshotUrls : null,
 
-                    // Declarations
+                    // Declarations - exist from migration 017
                     owner_declaration: data.ownerDeclaration,
                     rights_declaration: data.rightsDeclaration,
                     declaration_at: new Date().toISOString(),

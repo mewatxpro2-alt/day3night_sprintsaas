@@ -3,6 +3,7 @@ import { Send, MessageSquare, Mail, Loader2, CheckCircle, TicketCheck } from 'lu
 import Button from '../components/Button';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { upsertEmailRecord } from '../hooks/useEmailAudience';
 
 // Map subject to ticket category
 const SUBJECT_TO_CATEGORY: Record<string, string> = {
@@ -104,10 +105,22 @@ const Contact: React.FC = () => {
 
         await supabase.from('ticket_messages').insert(messageData);
 
-        setTicketNumber(ticket.ticket_number);
+        // Success - set ticket number
+        setTicketNumber(ticket?.ticket_number || null);
       }
 
       setSubmitted(true);
+
+      // Capture email for marketing (after successful submission)
+      await upsertEmailRecord(formData.email, 'contact', {
+        user_type: isAuthenticated ? 'buyer' : 'guest',
+        consent_flag: true,
+        linked_user_id: user?.id,
+        metadata: {
+          full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+          subject: formData.subject
+        }
+      });
     } catch (err) {
       console.error('Contact form error:', err);
       setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');

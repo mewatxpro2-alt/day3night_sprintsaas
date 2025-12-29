@@ -34,13 +34,13 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick, isPurchas
 
   return (
     <div
-      className="group flex flex-col gap-4 cursor-pointer"
+      className="group flex flex-col h-full bg-surface border border-border/60 hover:border-border rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] cursor-pointer"
       onClick={() => onClick(listing.id)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Visual Content Area */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface border border-border group-hover:border-border/60 group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-500">
+      {/* Visual Content Area - Full Width */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-surfaceHighlight">
 
         {/* Images Carousel */}
         {allImages.length > 0 ? (
@@ -66,17 +66,17 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick, isPurchas
         )}
 
         {/* Floating Badges - Top Left */}
-        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
           {isPurchased ? (
-            <span className="px-3 py-1.5 rounded-full bg-accent-primary/95 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1.5 ring-1 ring-white/20">
-              <CheckCircle size={11} strokeWidth={3} />
+            <span className="px-2.5 py-1 rounded-full bg-accent-primary/95 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 ring-1 ring-white/20">
+              <CheckCircle size={10} strokeWidth={3} />
               OWNED
             </span>
           ) : (
             <>
               {listing.featured && (
-                <span className="self-start px-3 py-1.5 rounded-full bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1.5 ring-1 ring-white/20">
-                  <Sparkles size={11} strokeWidth={2.5} />
+                <span className="self-start px-2.5 py-1 rounded-full bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 ring-1 ring-white/20">
+                  <Sparkles size={10} strokeWidth={2.5} />
                   FEATURED
                 </span>
               )}
@@ -89,19 +89,19 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick, isPurchas
           <div className={`transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <button
               onClick={handlePrevImage}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
             >
-              <ChevronLeft size={18} strokeWidth={2} />
+              <ChevronLeft size={16} strokeWidth={2} />
             </button>
             <button
               onClick={handleNextImage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm text-black/70 flex items-center justify-center transition-all duration-200 hover:bg-white hover:scale-110 shadow-lg border border-black/5"
             >
-              <ChevronRight size={18} strokeWidth={2} />
+              <ChevronRight size={16} strokeWidth={2} />
             </button>
 
             {/* Minimal Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 p-1.5 rounded-full bg-black/20 backdrop-blur-sm">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 p-1 rounded-full bg-black/20 backdrop-blur-sm">
               {allImages.slice(0, 5).map((_, idx) => (
                 <div
                   key={idx}
@@ -123,50 +123,50 @@ const FeaturedCard: React.FC<FeaturedCardProps> = ({ listing, onClick, isPurchas
             // TODO: Hook up toggleSave logic
           }}
         >
-          <Heart size={18} strokeWidth={listing.likes > 0 ? 0 : 2} className={listing.likes > 0 ? "fill-red-500 text-red-500" : ""} />
+          <Heart size={16} strokeWidth={listing.likes > 0 ? 0 : 2} className={listing.likes > 0 ? "fill-red-500 text-red-500" : ""} />
         </button>
       </div>
 
-      {/* Info Content - Clean & Structured */}
-      <div className="flex flex-col gap-3 px-1">
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1 min-w-0 space-y-1">
-            {/* Title & Tagline Group */}
+      {/* Info Content - With Padding and Border Top separation if needed, or just flow */}
+      <div className="flex flex-col flex-1 p-5 gap-4">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0 space-y-1.5">
+            {/* Title & Tagline */}
             <div>
-              <h3 className="text-lg font-display font-semibold text-textMain leading-tight truncate group-hover:text-accent-primary transition-colors">
+              <h3 className="text-[17px] font-display font-semibold text-textMain leading-[1.3] line-clamp-1 group-hover:text-accent-primary transition-colors">
                 {listing.title}
               </h3>
               {listing.tagline && (
-                <p className="text-sm font-medium text-textSecondary line-clamp-1 mt-0.5">
+                <p className="text-[13px] text-textSecondary line-clamp-1 font-medium opacity-90">
                   {listing.tagline}
                 </p>
               )}
             </div>
+
+            {/* Creator Row */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-surfaceHighlight border border-border flex items-center justify-center overflow-hidden shrink-0">
+                {listing.creator.avatar ? (
+                  <img src={listing.creator.avatar} alt={listing.creator.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[9px] font-bold text-textMuted">{listing.creator.name?.[0]}</span>
+                )}
+              </div>
+              <span className="text-xs font-medium text-textMuted group-hover:text-textSecondary transition-colors truncate">
+                {listing.creator.name}
+              </span>
+            </div>
           </div>
 
           {/* Price Pill */}
-          <div className="shrink-0">
-            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold tracking-tight border ${listing.price === 0
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                : 'bg-surfaceHighlight text-textMain border-border'
+          <div className="shrink-0 pt-0.5">
+            <span className={`inline-flex items-center justify-center px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-tight shadow-sm transition-colors ${listing.price === 0
+              ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+              : 'bg-surface text-textMain ring-1 ring-border group-hover:ring-accent-primary/20 group-hover:bg-accent-primary/5'
               }`}>
               {listing.price === 0 ? 'Free' : `$${listing.price}`}
             </span>
           </div>
-        </div>
-
-        {/* Creator & Meta - Minimal */}
-        <div className="flex items-center gap-2 pt-1">
-          <div className="w-5 h-5 rounded-full bg-surfaceHighlight border border-border flex items-center justify-center overflow-hidden">
-            {listing.creator.avatar ? (
-              <img src={listing.creator.avatar} alt={listing.creator.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-[9px] font-bold text-textMuted">{listing.creator.name?.[0]}</span>
-            )}
-          </div>
-          <span className="text-xs font-medium text-textMuted group-hover:text-textSecondary transition-colors">
-            {listing.creator.name}
-          </span>
         </div>
       </div>
     </div>

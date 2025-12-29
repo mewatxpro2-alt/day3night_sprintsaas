@@ -3,6 +3,7 @@ import { Outlet, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar/index';
 import Button from '../components/Button';
 import Logo from '../components/Logo';
+import PlatformAbout from '../components/PlatformAbout';
 
 const MainLayout: React.FC = () => {
     return (
@@ -10,12 +11,17 @@ const MainLayout: React.FC = () => {
             <Navbar />
 
             {/* Page Content */}
-            <div className="min-h-[calc(100vh-400px)]">
-                <Outlet />
+            <div className="min-h-[calc(100vh-400px)] pt-24 pb-12 px-6">
+                <div className="max-w-7xl mx-auto">
+                    <Outlet />
+                </div>
             </div>
 
+            {/* Extended Footer Section */}
+            <PlatformAbout />
+
             {/* Footer */}
-            <footer className="border-t border-border bg-surface py-20 px-6 mt-auto">
+            <footer className="bg-surface pt-0 pb-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Main Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 lg:gap-12 mb-20">

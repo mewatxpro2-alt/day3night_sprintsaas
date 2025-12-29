@@ -15,7 +15,8 @@ import {
     History,
     Flag,
     Shield,
-    FileText
+    FileText,
+    Mail
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -26,10 +27,12 @@ const AdminLayout: React.FC = () => {
 
     const navItems = [
         { path: '/admin', label: 'Overview', icon: LayoutDashboard },
-        { path: '/admin/submissions', label: 'Submissions', icon: FileStack },
+        { path: '/admin/applications', label: 'Seller Applications', icon: FileStack },
+        { path: '/admin/submissions', label: 'Kit Submissions', icon: Package },
         { path: '/admin/kits', label: 'Live Kits', icon: Package },
         { path: '/admin/orders', label: 'Orders', icon: DollarSign },
         { path: '/admin/users', label: 'Users', icon: Users },
+        { path: '/admin/emails', label: 'Email Audience', icon: Mail },
         { path: '/admin/tickets', label: 'Support Tickets', icon: MessageSquare },
         { path: '/admin/blog', label: 'Blog Manager', icon: FileText },
         { path: '/admin/refunds', label: 'Refunds', icon: Flag },

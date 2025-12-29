@@ -8,8 +8,10 @@ import { useCategories } from '../hooks/useCategories';
 
 const Explore: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const initialCategory = searchParams.get('category');
+
   const [filter, setFilter] = useState(initialCategory || 'All');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +61,7 @@ const Explore: React.FC = () => {
 
   return (
     <div className="pt-36 px-6 max-w-[1400px] mx-auto pb-20 min-h-screen">
+
       {/* Header */}
       <div className="mb-10 animate-slide-up">
         <h1 className="text-4xl md:text-5xl font-display font-bold text-textMain mb-4 tracking-tighter">Market-Ready SaaS Assets</h1>

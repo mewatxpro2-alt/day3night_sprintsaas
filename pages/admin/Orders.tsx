@@ -12,6 +12,7 @@ const AdminOrders: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalWithdrawn, setTotalWithdrawn] = useState(0);
     const ordersPerPage = 15;
 
     const fetchOrders = async () => {
@@ -19,6 +20,29 @@ const AdminOrders: React.FC = () => {
         setError(null);
 
         try {
+            // DIAGNOSTIC: Check current user
+            const { data: { user } } = await supabase.auth.getUser();
+            console.log('[Admin Orders] Current user:', user?.email, user?.id);
+
+            // DIAGNOSTIC: Check if user is admin
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('id, email, role')
+                .eq('id', user?.id)
+                .single();
+            console.log('[Admin Orders] User profile:', profileData);
+
+            // DIAGNOSTIC: Try calling is_admin() function
+            const { data: isAdminData, error: isAdminError } = await supabase
+                .rpc('is_admin');
+            console.log('[Admin Orders] is_admin() result:', isAdminData, 'error:', isAdminError);
+
+            // DIAGNOSTIC: Check total orders in database (bypassing RLS using service role would show real count)
+            const { count: totalCount } = await supabase
+                .from('orders')
+                .select('*', { count: 'exact', head: true });
+            console.log('[Admin Orders] Total orders visible to me:', totalCount);
+
             let query = supabase
                 .from('orders')
                 .select(`
@@ -34,9 +58,19 @@ const AdminOrders: React.FC = () => {
             }
 
             const { data, error: fetchError } = await query;
+            console.log('[Admin Orders] Query result:', { count: data?.length, data, error: fetchError });
 
             if (fetchError) throw fetchError;
             setOrders(data || []);
+
+            // Fetch total withdrawals
+            const { data: withdrawals } = await supabase
+                .from('seller_withdrawals')
+                .select('amount')
+                .eq('status', 'completed');
+
+            const total = withdrawals?.reduce((sum, w) => sum + Number(w.amount), 0) || 0;
+            setTotalWithdrawn(total);
         } catch (err) {
             console.error('[AdminOrders] Error:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch orders');
@@ -102,6 +136,10 @@ const AdminOrders: React.FC = () => {
         .reduce((sum, o) => sum + Number(o.price_amount), 0);
     const totalCommission = orders.filter(o => ['paid', 'delivered', 'completed'].includes(o.status))
         .reduce((sum, o) => sum + Number(o.commission_amount), 0);
+    const totalSellerEarnings = orders.filter(o => ['paid', 'delivered', 'completed'].includes(o.status))
+        .reduce((sum, o) => sum + Number(o.seller_amount || 0), 0);
+    const pendingOrders = orders.filter(o => o.status === 'paid').length;
+    const completedOrders = orders.filter(o => o.status === 'completed').length;
 
     if (isLoading) {
         return (
@@ -128,18 +166,31 @@ const AdminOrders: React.FC = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-surface border border-border">
-                    <p className="text-textMuted text-sm mb-1">Total Orders</p>
-                    <p className="text-3xl font-display font-bold text-textMain">{orders.length}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="p-5 rounded-2xl bg-surface border border-border">
+                    <p className="text-textMuted text-xs font-medium mb-1">Total Orders</p>
+                    <p className="text-2xl font-display font-bold text-textMain">{orders.length}</p>
+                    <p className="text-xs text-textMuted mt-1">{pendingOrders} pending • {completedOrders} complete</p>
                 </div>
-                <div className="p-6 rounded-2xl bg-surface border border-border">
-                    <p className="text-textMuted text-sm mb-1">Total Revenue</p>
-                    <p className="text-3xl font-display font-bold text-accent-primary">₹{totalRevenue.toLocaleString()}</p>
+                <div className="p-5 rounded-2xl bg-surface border border-border">
+                    <p className="text-textMuted text-xs font-medium mb-1">Total Revenue</p>
+                    <p className="text-2xl font-display font-bold text-accent-primary">₹{totalRevenue.toLocaleString()}</p>
+                    <p className="text-xs text-textMuted mt-1">Gross transaction value</p>
                 </div>
-                <div className="p-6 rounded-2xl bg-surface border border-border">
-                    <p className="text-textMuted text-sm mb-1">Platform Commission</p>
-                    <p className="text-3xl font-display font-bold text-accent-tertiary">₹{totalCommission.toLocaleString()}</p>
+                <div className="p-5 rounded-2xl bg-surface border border-border">
+                    <p className="text-textMuted text-xs font-medium mb-1">Platform Earnings</p>
+                    <p className="text-2xl font-display font-bold text-accent-tertiary">₹{totalCommission.toLocaleString()}</p>
+                    <p className="text-xs text-textMuted mt-1">10% commission</p>
+                </div>
+                <div className="p-5 rounded-2xl bg-surface border border-border">
+                    <p className="text-textMuted text-xs font-medium mb-1">Seller Earnings</p>
+                    <p className="text-2xl font-display font-bold text-accent-secondary-fg">₹{totalSellerEarnings.toLocaleString()}</p>
+                    <p className="text-xs text-textMuted mt-1">Owed to sellers</p>
+                </div>
+                <div className="p-5 rounded-2xl bg-surface border border-border">
+                    <p className="text-textMuted text-xs font-medium mb-1">Total Payouts</p>
+                    <p className="text-2xl font-display font-bold text-textMain">₹{totalWithdrawn.toLocaleString()}</p>
+                    <p className="text-xs text-textMuted mt-1">Processed withdrawals</p>
                 </div>
             </div>
 

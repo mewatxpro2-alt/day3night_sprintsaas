@@ -12,7 +12,7 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signIn, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated, profile } = useAuth();
   const { hasSellerActivity, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,11 +20,17 @@ const SignIn: React.FC = () => {
   // Redirect if already authenticated with smart routing
   React.useEffect(() => {
     if (isAuthenticated && !roleLoading) {
+      // Check onboarding first
+      if (profile && profile.onboarding_completed === false) {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+
       const from = (location.state as any)?.from;
       const destination = from || (hasSellerActivity ? '/seller' : '/mvp-kits');
       navigate(destination, { replace: true });
     }
-  }, [isAuthenticated, roleLoading, hasSellerActivity, navigate, location]);
+  }, [isAuthenticated, roleLoading, hasSellerActivity, navigate, location, profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

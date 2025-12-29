@@ -63,8 +63,10 @@ export const useApproveSubmission = () => {
                     category_id: categoryId,
                     creator_id: submission.user_id,
 
-                    // Technical
-                    tech_stack: submission.tech_stack ? submission.tech_stack.split(',').map(t => t.trim()) : [],
+                    // Technical - handle tech_stack as string OR array
+                    tech_stack: Array.isArray(submission.tech_stack)
+                        ? submission.tech_stack
+                        : (submission.tech_stack ? submission.tech_stack.split(',').map((t: string) => t.trim()) : []),
                     setup_time: submission.setup_time || null,
                     architecture_notes: submission.architecture_notes || null,
                     features: submission.features || null,

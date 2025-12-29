@@ -13,7 +13,7 @@ import MobileMenu from './MobileMenu';
 import { UserMenu } from './UserMenu';
 
 const Navbar: React.FC = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, profile } = useAuth();
     const { isAdmin } = useIsAdmin();
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -45,23 +45,42 @@ const Navbar: React.FC = () => {
                     </div>
 
                     {/* Right Section */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-6">
                         <div className="hidden sm:block">
                             <ThemeToggle />
                         </div>
 
                         {/* Desktop Actions */}
-                        <div className="hidden md:flex items-center gap-4 pl-4 border-l border-white/10">
+                        <div className="hidden md:flex items-center gap-4 pl-6 border-l border-white/10">
                             {isAuthenticated ? (
                                 <>
                                     <Button
-                                        variant="primary"
+                                        variant="ghost"
                                         size="sm"
-                                        onClick={() => navigate('/submit')}
-                                        className="hidden lg:flex"
+                                        onClick={() => navigate('/dashboard')}
+                                        className="text-textMuted hover:text-textMain"
                                     >
-                                        Submit Kit
+                                        Dashboard
                                     </Button>
+                                    {!profile?.is_seller && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => navigate('/apply-to-sell')}
+                                            className="text-accent-primary hover:text-accent-secondary"
+                                        >
+                                            Become a Seller
+                                        </Button>
+                                    )}
+                                    {profile?.is_seller && (
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => navigate('/submit')}
+                                        >
+                                            Submit Kit
+                                        </Button>
+                                    )}
                                     <UserMenu />
                                 </>
                             ) : (

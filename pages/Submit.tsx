@@ -43,7 +43,7 @@ const RESOURCE_TYPES = [
 
 const Submit: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const { submitKit, uploadProgress, isLoading: isSubmitting } = useSubmitKit();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -359,6 +359,20 @@ const Submit: React.FC = () => {
         <h2 className="text-2xl font-display font-bold text-textMain mb-4">Sign In Required</h2>
         <p className="text-textSecondary mb-6">You must be signed in to submit a kit for review.</p>
         <Button onClick={() => navigate('/signin')}>Sign In</Button>
+      </div>
+    );
+  }
+
+  // Redirect non-sellers
+  if (!profile?.is_seller) {
+    return (
+      <div className="pt-32 pb-20 px-6 min-h-[80vh] flex flex-col items-center justify-center animate-fade-in text-center max-w-md mx-auto">
+        <ShieldCheck size={48} className="text-accent-primary mb-6" />
+        <h2 className="text-2xl font-display font-bold text-textMain mb-4">Seller Account Required</h2>
+        <p className="text-textSecondary mb-6">
+          You need to be an approved seller to submit kits to the marketplace.
+        </p>
+        <Button onClick={() => navigate('/apply-to-sell')}>Apply to Sell</Button>
       </div>
     );
   }

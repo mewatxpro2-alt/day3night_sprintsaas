@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, Zap, Github, Chrome, Figma, Framer, Codepen, Gitlab, Command, Box, Cpu, Search, Filter, ShieldCheck, Terminal, FileCode, GitMerge, Lock, Loader2 } from 'lucide-react';
 import Button from '../components/Button';
 import FeaturedCard from '../components/FeaturedCard';
+import TestimonialWall from '../components/TestimonialWall';
+import SolutionGrid from '../components/SolutionGrid';
+
 
 import { useFeaturedListings, useListings } from '../hooks/useListings';
 import { useCategories } from '../hooks/useCategories';
@@ -162,7 +165,7 @@ const HandpickedSection = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="flex flex-col items-start gap-1 max-w-2xl">
             <h2 className="text-4xl md:text-6xl font-display font-bold text-textMain tracking-tighter">
-              Launch this weekend.
+              Launch this <span className="text-accent-primary">weekend.</span>
             </h2>
 
           </div>
@@ -235,7 +238,7 @@ const StatsBoard = () => {
 
   // Calculate real stats from data
   const totalListings = listings.length;
-  const totalViews = listings.reduce((acc, l) => acc + (l.views_count || 0), 0);
+  const totalViews = listings.reduce((acc, l) => acc + (l.views || 0), 0);
   const formatNumber = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n.toString();
 
   const stats = [
@@ -291,7 +294,7 @@ const EngineeringStandard = () => {
           <div className="mb-16 md:flex md:justify-between md:items-end">
             <div className="max-w-2xl">
               <h2 className="text-3xl md:text-5xl font-display font-bold text-textMain mb-6 tracking-tighter">
-                Built for Production. Ready for Revenue.
+                Built for Production. Ready for <span className="text-accent-primary">Revenue.</span>
               </h2>
               <p className="text-textMuted text-lg font-light leading-relaxed">
                 These are not demos or tutorials. Every codebase is manually reviewed for real-world production readiness. If it's not ready to scale and monetize immediately, it doesn't get in.
@@ -367,7 +370,7 @@ const Home: React.FC = () => {
 
           <div className="w-fit mx-auto flex flex-col items-center mb-10">
             <h1 className="text-5xl md:text-8xl font-display font-bold text-textMain tracking-tighter leading-[1] mb-2 text-center">
-              Start with a finished SaaS.
+              Start with a finished <span className="text-accent-primary">SaaS.</span>
             </h1>
             <div className="w-1/2 min-w-[180px] h-px bg-border/50 my-6" />
             <h1 className="text-5xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-textMain via-textMain to-textMuted tracking-tighter leading-[1] mt-2">
@@ -423,127 +426,49 @@ const Home: React.FC = () => {
       {/* Infinite Logo Marquee */}
       <LogoMarquee />
 
-      {/* Feature Cards Section */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <Reveal>
-          <div className="mb-16 md:text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-display font-bold text-textMain mb-6 tracking-tighter">
-              Real Products. <br />Not Just Code.
-            </h2>
+      {/* Solution Grid - How It Works */}
+      <SolutionGrid />
 
-            <p className="text-textMuted text-lg font-light leading-relaxed">
-              Buy a codebase that has already been built, tested, and sometimes even launched. Skip the validation phase and start iterating.
-            </p>
-          </div>
-        </Reveal>
+      {/* Testimonial Wall - Authentic Social Proof */}
+      <TestimonialWall />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Reveal delay={0} className="h-full">
-            <div className="group h-full bg-surface border border-border rounded-2xl p-6 hover:border-borderHover transition-colors hover:shadow-xl dark:hover:shadow-premium">
-              <div className="aspect-[4/3] w-full bg-surface rounded-xl border border-border p-5 flex flex-col relative overflow-hidden mb-6 group-hover:border-borderHover transition-colors duration-500 group-hover:bg-accent-primary/5 shadow-inner ring-1 ring-inset ring-border">
-                <div className="flex justify-between items-start mb-auto">
-                  <div className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center transition-colors group-hover:bg-accent-primary/10 group-hover:border-accent-primary/20">
-                    <Check size={14} className="text-textMuted transition-colors group-hover:text-accent-primary" />
-                  </div>
-                  <div className="flex gap-1.5 opacity-30">
-                    <div className="w-1.5 h-1.5 rounded-full bg-textMain/40" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-textMain/40" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-textMain/40" />
-                  </div>
-                </div>
-                <div className="w-8 h-1.5 bg-textMain/10 rounded-full mb-3" />
-                <div className="w-full flex-1 bg-surface rounded border border-border mb-3 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-textMain/5 to-transparent opacity-50" />
-                </div>
-                <div className="space-y-2">
-                  <div className="w-full h-1.5 bg-textMain/10 rounded-full" />
-                  <div className="w-2/3 h-1.5 bg-textMain/10 rounded-full" />
-                </div>
-              </div>
 
-              <h3 className="text-lg font-bold text-textMain mb-2">Production Ready</h3>
-              <p className="text-textMuted leading-relaxed text-sm opacity-80">
-                Includes RBAC, Tenant isolation, and database migration scripts. Save 200+ dev hours.
-              </p>
-            </div>
-          </Reveal>
-
-          <Reveal delay={100} className="h-full">
-            <div className="group h-full bg-surface border border-border rounded-2xl p-6 hover:border-borderHover transition-colors hover:shadow-xl dark:hover:shadow-premium">
-              <div className="aspect-[4/3] w-full bg-surface rounded-xl border border-border p-5 flex flex-col relative overflow-hidden mb-6 group-hover:border-borderHover transition-colors duration-500 group-hover:bg-accent-primary/5 shadow-inner ring-1 ring-inset ring-border">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center transition-colors group-hover:bg-accent-primary/10 group-hover:border-accent-primary/20">
-                    <Terminal size={14} className="text-textMuted transition-colors group-hover:text-accent-primary" />
-                  </div>
-                  <div className="px-2 py-0.5 rounded text-[10px] bg-surface border border-border text-textMuted font-mono">
-                    .tsx
-                  </div>
-                </div>
-                <div className="flex-1 space-y-2 font-mono text-[10px] text-textMuted/60 p-1">
-                  <div className="flex gap-2"><span className="text-textMuted group-hover:text-accent-primary transition-colors">import</span> <span>Auth</span></div>
-                  <div className="flex gap-2"><span className="text-textMuted group-hover:text-accent-secondary transition-colors">const</span> <span className="text-textMain">User</span> = {'() => {'}</div>
-                  <div className="pl-4 text-textMuted/50 group-hover:text-accent-primary/50 transition-colors">{'// strict types'}</div>
-                  <div className="pl-4 flex gap-2"><span className="text-textMuted group-hover:text-accent-secondary transition-colors">return</span> <span className="text-textMain/30">{'<Dashboard />'}</span></div>
-                  <div>{'}'}</div>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-bold text-textMain mb-2">Modern Stack Only</h3>
-              <p className="text-textMuted leading-relaxed text-sm opacity-80">
-                Next.js 14, Tailwind, and Supabase ready. No jQuery. No old deps. Strictly typed TypeScript.
-              </p>
-            </div>
-          </Reveal>
-
-          <Reveal delay={200} className="h-full">
-            <div className="group h-full bg-surface border border-border rounded-2xl p-6 hover:border-borderHover transition-colors hover:shadow-xl dark:hover:shadow-premium">
-              <div className="aspect-[4/3] w-full bg-surface rounded-xl border border-border flex flex-col relative overflow-hidden mb-6 group-hover:border-borderHover transition-colors duration-500 group-hover:bg-accent-primary/5 shadow-inner ring-1 ring-inset ring-border">
-                <div className="h-8 border-b border-border bg-surface flex items-center px-3 gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-500/20 grayscale group-hover:grayscale-0 transition-all" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-500/20 grayscale group-hover:grayscale-0 transition-all" />
-                  <div className="w-2 h-2 rounded-full bg-green-500/20 grayscale group-hover:grayscale-0 transition-all" />
-                </div>
-                <div className="flex-1 relative flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent group-hover:bg-accent-primary/5 transition-colors" />
-                  <div className="w-12 h-12 rounded-full bg-surface border border-border text-textMuted flex items-center justify-center shadow-sm transform group-hover:scale-110 group-hover:bg-accent-primary group-hover:text-accentFg-primary group-hover:border-transparent group-hover:shadow-[0_0_30px_-10px_rgba(var(--accent-primary)/0.5)] transition-all duration-300">
-                    <Zap size={20} fill="currentColor" />
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-bold text-textMain mb-2">Test Before Buying</h3>
-              <p className="text-textMuted leading-relaxed text-sm opacity-80">
-                Don't guess based on screenshots. Deploy a live demo instance in 1-click.
-              </p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
 
       {/* Engineering Standard Section */}
       <EngineeringStandard />
 
-      {/* CTA Section */}
-      <section className="py-32 px-6">
+      {/* CTA Section - Orbital Redesign */}
+      <section className="py-24 px-6 relative overflow-hidden">
         <Reveal>
-          <div className="max-w-4xl mx-auto text-center bg-surface border border-border p-12 md:p-24 rounded-[32px] relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-accent-primary/5 blur-[100px] rounded-full pointer-events-none" />
+          <div className="max-w-3xl mx-auto relative">
+            {/* Orbital Rings - Pure CSS decoration */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-border/40 pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-border/20 pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-dashed border-border/60 pointer-events-none animate-[spin_60s_linear_infinite]" />
 
-            <h2 className="text-4xl md:text-6xl font-display font-bold text-textMain mb-6 relative z-10 tracking-tighter">
-              Your Next Startup is Waiting.
-            </h2>
-            <p className="text-lg text-textMuted mb-10 max-w-xl mx-auto relative z-10 font-light">
-              Join 15,000+ technical founders turning unused assets into revenue and new products.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-              <input
-                type="email"
-                placeholder="founder@startup.com"
-                className="bg-surfaceHighlight border border-border rounded-lg px-6 py-3.5 text-textMain placeholder:text-textMuted/50 focus:outline-none focus:border-textMain/20 focus:ring-1 focus:ring-textMain/10 w-full sm:w-80 transition-all"
-              />
-              <Button size="lg" onClick={() => navigate('/signin')} className="h-auto py-3.5">Create Free Account</Button>
+            <div className="relative z-10 bg-surface/80 backdrop-blur-sm border border-border rounded-full p-12 md:p-20 text-center shadow-xl ring-1 ring-border/50">
+              <h2 className="text-3xl md:text-5xl font-display font-bold text-textMain mb-4 tracking-tight">
+                Your Next Startup is <span className="text-accent-primary">Waiting.</span>
+              </h2>
+              <p className="text-lg text-textMuted mb-8 max-w-lg mx-auto font-light leading-relaxed">
+                Join 15,000+ technical founders turning unused assets into revenue.
+              </p>
+
+              <div className="flex flex-col sm:flex-row justify-center gap-3 relative max-w-md mx-auto">
+                <input
+                  type="email"
+                  placeholder="founder@startup.com"
+                  className="bg-background border border-border rounded-full px-6 py-3 text-textMain placeholder:text-textMuted/50 focus:outline-none focus:border-accent-primary/50 focus:ring-2 focus:ring-accent-primary/10 w-full transition-all text-sm"
+                />
+                <Button size="lg" onClick={() => navigate('/signin')} className="h-auto py-3 rounded-full px-8 shrink-0">
+                  Create Account
+                </Button>
+              </div>
+
+              <p className="mt-6 text-[11px] text-textMuted/60 uppercase tracking-widest font-mono">
+                Instant Access • Commercial License
+              </p>
             </div>
-            <p className="mt-6 text-xs text-textMuted opacity-50">Instant access to code repositories after purchase. No credit card required to explore.</p>
           </div>
         </Reveal>
       </section>

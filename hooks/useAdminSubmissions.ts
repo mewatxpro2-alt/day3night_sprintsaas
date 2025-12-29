@@ -16,7 +16,7 @@ export interface Submission {
     live_url: string;
 
     // Technical
-    tech_stack: string;
+    tech_stack: string | string[];
     setup_time?: string;
     architecture_notes?: string;
     features?: string;

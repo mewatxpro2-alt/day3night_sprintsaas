@@ -144,7 +144,9 @@ export const useSendInquiry = () => {
         listingId: string,
         sellerId: string,
         subject: string,
-        message: string
+        message: string,
+        budgetRange?: string,
+        timeline?: string
     ): Promise<boolean> => {
         if (!user) {
             setError('You must be logged in to send an inquiry');
@@ -160,16 +162,45 @@ export const useSendInquiry = () => {
         setError(null);
 
         try {
-            const { error: insertError } = await supabase
-                .from('seller_inquiries')
-                .insert({
-                    listing_id: listingId,
-                    seller_id: sellerId,
-                    buyer_id: user.id,
-                    subject: subject.trim(),
-                    message: message.trim(),
-                    status: 'new'
-                });
+            // Base inquiry data (always works)
+            const inquiryData: Record<string, any> = {
+                listing_id: listingId,
+                seller_id: sellerId,
+                buyer_id: user.id,
+                subject: subject.trim(),
+                message: message.trim(),
+                status: 'new'
+            };
+
+            // Try to insert with optional fields (budget_range, timeline)
+            // These columns may not exist until migration 054 is run
+            // First try with the new fields, if it fails, try without
+            let insertError;
+
+            try {
+                const result = await supabase
+                    .from('seller_inquiries')
+                    .insert({
+                        ...inquiryData,
+                        budget_range: budgetRange || null,
+                        timeline: timeline || null
+                    });
+                insertError = result.error;
+
+                // If column doesn't exist error, fall back to basic insert
+                if (insertError?.code === '42703') {
+                    const fallbackResult = await supabase
+                        .from('seller_inquiries')
+                        .insert(inquiryData);
+                    insertError = fallbackResult.error;
+                }
+            } catch {
+                // Fallback to basic insert
+                const fallbackResult = await supabase
+                    .from('seller_inquiries')
+                    .insert(inquiryData);
+                insertError = fallbackResult.error;
+            }
 
             if (insertError) throw insertError;
             return true;

@@ -5,14 +5,35 @@ import type { User, Session } from '@supabase/supabase-js';
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
+    const [profile, setProfile] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const fetchProfile = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (!error && data) {
+                setProfile(data);
+            }
+        } catch (err) {
+            console.error('Error fetching profile:', err);
+        }
+    };
 
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            if (session?.user) {
+                fetchProfile(session.user.id);
+            } else {
+                setLoading(false);
+            }
         });
 
         // Listen for auth changes
@@ -21,11 +42,21 @@ export const useAuth = () => {
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+
+            if (session?.user) {
+                fetchProfile(session.user.id).then(() => setLoading(false));
+            } else {
+                setProfile(null);
+                setLoading(false);
+            }
         });
 
         return () => subscription.unsubscribe();
     }, []);
+
+    const refreshProfile = async () => {
+        if (user) await fetchProfile(user.id);
+    };
 
     const signIn = async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -54,6 +85,7 @@ export const useAuth = () => {
                 full_name: fullName,
                 role: 'user',
                 is_seller: false,
+                onboarding_completed: false // Explicitly set false for new users
             }, { onConflict: 'id' });
         }
 
@@ -62,6 +94,7 @@ export const useAuth = () => {
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
+        setProfile(null);
         return { error };
     };
 
@@ -75,11 +108,13 @@ export const useAuth = () => {
     return {
         user,
         session,
+        profile,
         loading,
         signIn,
         signUp,
         signOut,
         resetPassword,
+        refreshProfile,
         isAuthenticated: !!user,
     };
 };

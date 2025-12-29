@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, profile } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -25,6 +25,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
+    }
+
+    // Redirect new users to onboarding
+    // Only if profile loaded and onboarding not completed
+    if (profile) {
+        // console.log('[ProtectedRoute] Checking onboarding:', {
+        //     completed: profile.onboarding_completed,
+        //     path: location.pathname
+        // });
+
+        if (profile.onboarding_completed === false && location.pathname !== '/onboarding') {
+            return <Navigate to="/onboarding" replace />;
+        }
     }
 
     return <>{children}</>;

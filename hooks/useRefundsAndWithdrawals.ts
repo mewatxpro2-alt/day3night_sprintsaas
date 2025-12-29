@@ -115,7 +115,8 @@ export const useAdminRefundRequests = (statusFilter: string = 'all') => {
                 .select(`
                     id, order_id, reason, description, status, admin_notes, refund_amount,
                     created_at, reviewed_at, reviewed_by, completed_at,
-                    order:orders(order_number, price_amount, buyer_id, listing:listings(title), seller:profiles!orders_seller_id_fkey(full_name), buyer:profiles!orders_buyer_id_fkey(full_name, email))
+                    buyer:profiles!buyer_id(full_name, email),
+                    order:orders(order_number, price_amount, listing:listings(title), seller:profiles!orders_seller_id_fkey(full_name), buyer:profiles!orders_buyer_id_fkey(full_name, email))
                 `)
                 .order('created_at', { ascending: false });
 
@@ -408,7 +409,8 @@ export const useRequestWithdrawal = () => {
             }
 
             // Create withdrawal request
-            const { error } = await supabase
+            // Note: DB Trigger 'trigger_deduct_balance_on_withdrawal' automatically subtracts from available_balance
+            const { error: insertError } = await supabase
                 .from('seller_withdrawals')
                 .insert({
                     seller_id: user.id,
@@ -418,19 +420,13 @@ export const useRequestWithdrawal = () => {
                     payment_details: paymentDetails,
                 });
 
-            if (error) throw error;
-
-            // Deduct from available balance (will be confirmed when processed)
-            await supabase
-                .from('profiles')
-                .update({
-                    available_balance: profile.available_balance - amount
-                })
-                .eq('id', user.id);
+            if (insertError) throw insertError;
 
             return { success: true };
-        } catch (err) {
-            return { success: false, error: err instanceof Error ? err.message : 'Failed to request withdrawal' };
+        } catch (err: any) {
+            console.error('Withdrawal Request Error:', err);
+            const message = err.message || (typeof err === 'string' ? err : 'Failed to request withdrawal');
+            return { success: false, error: message };
         } finally {
             setIsLoading(false);
         }
@@ -452,7 +448,7 @@ export const useAdminWithdrawals = (statusFilter: string = 'all') => {
             .select(`
                 id, seller_id, amount, status, payment_method, payment_details, admin_notes,
                 created_at, processed_at,
-                seller:profiles!seller_withdrawals_seller_id_fkey(full_name, email)
+                seller:profiles!seller_id(full_name, email)
             `)
             .order('created_at', { ascending: false });
 
@@ -460,7 +456,10 @@ export const useAdminWithdrawals = (statusFilter: string = 'all') => {
             query = query.eq('status', statusFilter);
         }
 
-        const { data } = await query;
+        const { data, error } = await query;
+        if (error) {
+            console.error('Error fetching admin withdrawals:', error);
+        }
         setWithdrawals(data as any || []);
         setIsLoading(false);
     };
@@ -563,4 +562,34 @@ export const useProcessWithdrawal = () => {
     };
 
     return { processWithdrawal, isLoading };
+};
+
+export const useSellerBankDetails = () => {
+    const { user } = useAuth();
+    const [bankDetails, setBankDetails] = useState<{
+        bank_name: string;
+        account_number_last4: string;
+        account_holder_name: string;
+        upi_id?: string;
+    } | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (!user) return;
+
+            const { data } = await supabase
+                .from('seller_bank_accounts')
+                .select('bank_name, account_number_last4, account_holder_name, upi_id')
+                .eq('seller_id', user.id)
+                .single();
+
+            setBankDetails(data);
+            setIsLoading(false);
+        };
+
+        fetchDetails();
+    }, [user]);
+
+    return { bankDetails, isLoading };
 };

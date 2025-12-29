@@ -6,7 +6,7 @@ import {
 import { useAdminRefundRequests, useUpdateRefundStatus, type RefundRequest } from '../../hooks/useRefundsAndWithdrawals';
 
 const AdminRefunds: React.FC = () => {
-    const [statusFilter, setStatusFilter] = useState<string>('pending');
+    const [statusFilter, setStatusFilter] = useState<string>('reported');
     const [selectedRequest, setSelectedRequest] = useState<RefundRequest | null>(null);
     const [adminNotes, setAdminNotes] = useState('');
     const { requests, isLoading, error, refetch } = useAdminRefundRequests(statusFilter);
@@ -14,11 +14,11 @@ const AdminRefunds: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'pending': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            case 'reported': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
             case 'under_review': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
             case 'approved': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
             case 'rejected': return 'bg-red-500/10 text-red-400 border-red-500/20';
-            case 'refunded': return 'bg-green-500/10 text-green-400 border-green-500/20';
+            case 'completed': return 'bg-green-500/10 text-green-400 border-green-500/20';
             default: return 'bg-surfaceHighlight text-textMuted border-border';
         }
     };
@@ -33,7 +33,7 @@ const AdminRefunds: React.FC = () => {
         }
     };
 
-    const handleAction = async (status: 'under_review' | 'approved' | 'rejected' | 'refunded') => {
+    const handleAction = async (status: 'under_review' | 'approved' | 'rejected' | 'completed') => {
         if (!selectedRequest) return;
 
         const result = await updateStatus(selectedRequest.id, status, adminNotes);
@@ -71,7 +71,7 @@ const AdminRefunds: React.FC = () => {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-2">
-                {(['all', 'pending', 'under_review', 'approved', 'refunded', 'rejected'] as const).map((status) => (
+                {(['all', 'reported', 'under_review', 'approved', 'completed', 'rejected'] as const).map((status) => (
                     <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
@@ -209,7 +209,7 @@ const AdminRefunds: React.FC = () => {
                                 <div className="p-4 bg-surfaceHighlight rounded-lg">
                                     <p className="text-xs text-textMuted uppercase mb-1">Buyer</p>
                                     <p className="font-medium text-textMain">
-                                        {selectedRequest.buyer?.full_name || 'Unknown'}
+                                        {selectedRequest.buyer?.full_name || selectedRequest.order?.buyer?.full_name || 'Unknown'}
                                     </p>
                                 </div>
                                 <div className="p-4 bg-surfaceHighlight rounded-lg">
@@ -250,7 +250,7 @@ const AdminRefunds: React.FC = () => {
                             {/* Actions */}
                             {selectedRequest.status !== 'refunded' && (
                                 <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
-                                    {selectedRequest.status === 'pending' && (
+                                    {selectedRequest.status === 'reported' && (
                                         <button
                                             onClick={() => handleAction('under_review')}
                                             disabled={isUpdating}
@@ -269,12 +269,12 @@ const AdminRefunds: React.FC = () => {
                                                 Approve Refund
                                             </button>
                                             <button
-                                                onClick={() => handleAction('refunded')}
+                                                onClick={() => handleAction('completed')}
                                                 disabled={isUpdating}
                                                 className="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 font-medium text-sm transition-colors disabled:opacity-50"
                                             >
                                                 <Check size={14} className="inline mr-1" />
-                                                Mark Refunded
+                                                Mark Completed
                                             </button>
                                             <button
                                                 onClick={() => handleAction('rejected')}

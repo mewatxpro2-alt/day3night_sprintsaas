@@ -35,7 +35,7 @@ const SignUp: React.FC = () => {
         } else {
             setSuccess(true);
             // New users default to browse marketplace
-            setTimeout(() => navigate('/mvp-kits'), 2000);
+            setTimeout(() => navigate('/onboarding'), 2000);
         }
     };
 

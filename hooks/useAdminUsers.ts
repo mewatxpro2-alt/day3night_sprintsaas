@@ -9,6 +9,12 @@ export interface AdminUser {
     role: string;
     is_seller: boolean;
     created_at: string;
+    onboarding_completed?: boolean;
+    onboarding_completed_at?: string;
+    primary_intent?: string;
+    interest_type?: string;
+    seller_type?: string;
+    seller_product_focus?: string;
 }
 
 export const useAdminUsers = () => {

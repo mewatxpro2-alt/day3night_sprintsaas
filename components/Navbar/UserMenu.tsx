@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useIsAdmin } from '../../hooks/useIsAdmin';
 
 export const UserMenu: React.FC = () => {
-    const { user, signOut } = useAuth();
+    const { user, profile, signOut } = useAuth();
     const { isAdmin } = useIsAdmin();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -75,23 +75,42 @@ export const UserMenu: React.FC = () => {
                         )}
 
                         <button
+                            onClick={() => { navigate('/profile'); setIsOpen(false); }}
+                            className="w-full px-4 py-2 text-left text-sm text-textMain hover:bg-surfaceHighlight transition-colors font-medium flex items-center gap-2"
+                        >
+                            <UserIcon size={16} className="text-accent-primary" />
+                            Your Profile
+                        </button>
+
+                        <button
                             onClick={() => { navigate('/dashboard'); setIsOpen(false); }}
                             className="w-full px-4 py-2 text-left text-sm text-textMuted hover:text-textMain hover:bg-surfaceHighlight transition-colors"
                         >
                             Buyer Dashboard
                         </button>
-                        <button
-                            onClick={() => { navigate('/seller'); setIsOpen(false); }}
-                            className="w-full px-4 py-2 text-left text-sm text-accent-primary hover:bg-surfaceHighlight transition-colors font-medium"
-                        >
-                            Seller Dashboard
-                        </button>
-                        <button
-                            onClick={() => { navigate('/submit'); setIsOpen(false); }}
-                            className="w-full px-4 py-2 text-left text-sm text-textMuted hover:text-textMain hover:bg-surfaceHighlight transition-colors lg:hidden"
-                        >
-                            Submit Kit
-                        </button>
+                        {profile?.is_seller ? (
+                            <>
+                                <button
+                                    onClick={() => { navigate('/seller'); setIsOpen(false); }}
+                                    className="w-full px-4 py-2 text-left text-sm text-accent-primary hover:bg-surfaceHighlight transition-colors font-medium"
+                                >
+                                    Seller Dashboard
+                                </button>
+                                <button
+                                    onClick={() => { navigate('/submit'); setIsOpen(false); }}
+                                    className="w-full px-4 py-2 text-left text-sm text-textMuted hover:text-textMain hover:bg-surfaceHighlight transition-colors lg:hidden"
+                                >
+                                    Submit Kit
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => { navigate('/apply-to-sell'); setIsOpen(false); }}
+                                className="w-full px-4 py-2 text-left text-sm text-accent-primary hover:bg-surfaceHighlight transition-colors font-medium"
+                            >
+                                Become a Seller
+                            </button>
+                        )}
                     </div>
 
                     <div className="border-t border-border pt-2">
